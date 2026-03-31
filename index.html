@@ -328,7 +328,7 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen" class="setup-screen" style="display:none;">
   <div class="setup-card">
-    <div class="setup-logo">📋Daily</div>
+    <div class="setup-logo">📑Daily</div>
     <div class="setup-title">Google Sheets 연동 설정</div>
     <div class="setup-sub">아래 단계를 따라 설정하면 어떤 기기에서든 동일한 데이터를 쓸 수 있어요.</div>
     <div class="setup-step"><div class="setup-step-num">1</div><div class="setup-step-text"><strong>Google 시트 만들기</strong><br><a href="https://sheets.new" target="_blank" style="color:var(--accent);">sheets.new</a> 를 새 탭에서 열어 빈 구글 시트를 만드세요.</div></div>
@@ -913,7 +913,7 @@ function renderToday(){
   const dt=new Date(y,m-1,d);
   document.getElementById('disp-date').textContent=`${y}년 ${m}월 ${d}일`;
   const isWd=isWorkday(curDate);
-  const holidayNote=isHoliday(curDate)?' 🏖️ 공휴일':(!isWd&&dt.getDay()===0?' (일)':`${!isWd&&dt.getDay()===6?' (토)':''}`);
+  const holidayNote=isHoliday(curDate)?' 🔇 공휴일':(!isWd&&dt.getDay()===0?' (일)':`${!isWd&&dt.getDay()===6?' (토)':''}`);
   document.getElementById('disp-week').textContent=DAYS[dt.getDay()]+'요일'+holidayNote;
   document.getElementById('agenda-inp').value=curDay.agenda||'';
   document.getElementById('memo-inp').value=curDay.memo||'';
@@ -990,7 +990,7 @@ async function saveEdit(i){
   toast('수정됐어요');
 }
 
-function priBlocks(p){const icons=['','🟢','🟡','🟠','🔴'];return `<span style="font-size:14px;">${icons[p]||''}</span>`;}
+function priBlocks(p){const icons=['','🔴','🟠','🟡','🟢'];return `<span style="font-size:14px;">${icons[p]||''}</span>`;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function renderStatCards(){
