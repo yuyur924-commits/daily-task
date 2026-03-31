@@ -842,26 +842,19 @@ async function sbSet(date,data){
   try{
     setSyncStatus('syncing');
     const uid=currentSession.user.id;
-    // 먼저 존재하는지 확인
-    const chk=await fetch(
-      `${SB_URL}/rest/v1/daily_tasks?user_id=eq.${uid}&date=eq.${date}&select=id`,
-      {headers:getSBHeaders()}
+    // DELETE 후 INSERT (가장 확실한 upsert)
+    await fetch(
+      `${SB_URL}/rest/v1/daily_tasks?user_id=eq.${uid}&date=eq.${date}`,
+      {method:'DELETE',headers:getSBHeaders()}
     );
-    const existing=await chk.json();
-    let res;
-    if(existing&&existing.length>0){
-      // UPDATE
-      res=await fetch(
-        `${SB_URL}/rest/v1/daily_tasks?user_id=eq.${uid}&date=eq.${date}`,
-        {method:'PATCH',headers:{...getSBHeaders(),'Prefer':'return=minimal'},body:JSON.stringify({data})}
-      );
-    } else {
-      // INSERT
-      res=await fetch(
-        `${SB_URL}/rest/v1/daily_tasks`,
-        {method:'POST',headers:{...getSBHeaders(),'Prefer':'return=minimal'},body:JSON.stringify({user_id:uid,date,data})}
-      );
-    }
+    const res=await fetch(
+      `${SB_URL}/rest/v1/daily_tasks`,
+      {
+        method:'POST',
+        headers:{...getSBHeaders(),'Prefer':'return=minimal'},
+        body:JSON.stringify({user_id:uid,date,data})
+      }
+    );
     if(res.status===200||res.status===201||res.status===204){
       setSyncStatus('ok');return true;
     }
