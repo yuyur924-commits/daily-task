@@ -296,7 +296,7 @@
 <body>
 
 <!-- SETUP SCREEN -->
-<div id="setup-screen" class="setup-screen">
+<div id="setup-screen" class="setup-screen" style="display:none;">
   <div class="setup-card">
     <div class="setup-logo">📋 Daily</div>
     <div class="setup-title">Google Sheets 연동 설정</div>
@@ -487,9 +487,9 @@
   <div class="modal">
     <div class="modal-hd"><h3>설정</h3><button class="modal-x" onclick="closeSettings()">✕</button></div>
     <div class="modal-body">
-      <div class="m-lbl">현재 Google Apps Script URL</div>
-      <input class="m-input" id="settings-url" placeholder="https://script.google.com/macros/s/.../exec">
-      <p style="font-size:11px;color:var(--text3);margin-top:6px;">URL을 변경하면 데이터 저장 위치가 바뀝니다.</p>
+      <div class="m-lbl">데이터베이스</div>
+      <div style="font-size:13px;background:var(--green-soft);color:var(--green);padding:10px 14px;border-radius:var(--r2);">✅ Supabase 연결됨</div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px;">Project: cztaicgwuovdborhdlev.supabase.co</p>
     </div>
     <div class="modal-ft"><button class="btn-sec" onclick="closeSettings()">취소</button><button class="btn-pri" onclick="saveSettings()">저장</button></div>
   </div>
@@ -569,69 +569,86 @@ function getSummary(jsonStr){
 }`.trim();
 
 /* ═══════════════════════════════════════
-   CONFIG
+   SUPABASE CONFIG
 ═══════════════════════════════════════ */
-const CFG_KEY='daily_cfg_v3';
-const FIXED_API_URL='https://script.google.com/macros/s/AKfycbwtrBrdAXwbORZa8HAL13C6KH653AGXYcKdZ7o3voicN8iDozL43apwkGLqMWvn-5KAtw/exec';
-function getCfg(){const saved=JSON.parse(localStorage.getItem(CFG_KEY)||'{}');return{...saved,apiUrl:FIXED_API_URL};}
-function setCfg(c){localStorage.setItem(CFG_KEY,JSON.stringify({...c,apiUrl:FIXED_API_URL}));}
+const SB_URL='https://cztaicgwuovdborhdlev.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6dGFpY2d3dW92ZGJvcmhkbGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MTk1OTEsImV4cCI6MjA5MDQ5NTU5MX0.FVuGtXrrJQYR9G97DR5zMdXSXDFSxLJPx7VrvaRkXLI';
+const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
 
-function copyScript(){
-  navigator.clipboard.writeText(APPS_SCRIPT_CODE).then(()=>{
-    document.getElementById('copy-ok').style.display='inline';
-    setTimeout(()=>{document.getElementById('copy-ok').style.display='none';},2500);
-  });
-}
-function saveSetup(){
-  const url=document.getElementById('api-url-input').value.trim();
-  if(!url.startsWith('https://script.google.com')){document.getElementById('setup-error').style.display='block';return;}
-  setCfg({apiUrl:url});
-  document.getElementById('setup-screen').style.display='none';
-  document.getElementById('main-app').style.display='block';
-  init();
-}
-function openSettings(){document.getElementById('settings-url').value=getCfg().apiUrl||'';document.getElementById('settings-modal').classList.add('open');}
-function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
-function saveSettings(){
-  const url=document.getElementById('settings-url').value.trim();
-  if(url){setCfg({...getCfg(),apiUrl:url});toast('URL이 저장됐어요');}
-  closeSettings();
-}
-
-/* ═══════════════════════════════════════
-   API
-═══════════════════════════════════════ */
-async function apiCall(body){
-  const url=getCfg().apiUrl;if(!url)return null;
-  setSyncStatus('syncing');
-  try{
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
-    const json=await res.json();setSyncStatus('ok');return json;
-  }catch(e){setSyncStatus('error');setSyncStatus('error');return null;}
-}
 /* ─ CACHE ─ */
-const CACHE_KEY='daily_cache_v1';
+const CACHE_KEY='daily_cache_v2';
 function cacheGet(k){try{return(JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')||{})[k]||null;}catch{return null;}}
 function cacheSet(k,v){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');c[k]=v;localStorage.setItem(CACHE_KEY,JSON.stringify(c));}catch{}}
+
+/* ─ SUPABASE API ─ */
+async function sbGet(date){
+  try{
+    setSyncStatus('syncing');
+    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?date=eq.${date}&select=data`,{headers:SB_HEADERS});
+    const rows=await res.json();
+    setSyncStatus('ok');
+    return rows&&rows.length?rows[0].data:null;
+  }catch(e){setSyncStatus('error');return null;}
+}
+async function sbSet(date,data){
+  try{
+    setSyncStatus('syncing');
+    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks`,{
+      method:'POST',
+      headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({date,data})
+    });
+    setSyncStatus('ok');
+    return res.ok;
+  }catch(e){setSyncStatus('error');return false;}
+}
+async function sbList(){
+  try{
+    setSyncStatus('syncing');
+    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?select=date,data&order=date.desc`,{headers:SB_HEADERS});
+    const rows=await res.json();
+    setSyncStatus('ok');
+    return (rows||[]).map(r=>({date:r.date,summary:getSummaryFromData(r.data)}));
+  }catch(e){setSyncStatus('error');return null;}
+}
+async function sbListMonth(year,month){
+  try{
+    setSyncStatus('syncing');
+    const prefix=year+'-'+String(month).padStart(2,'0');
+    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?date=like.${prefix}*&select=date,data&order=date.asc`,{headers:SB_HEADERS});
+    const rows=await res.json();
+    setSyncStatus('ok');
+    return (rows||[]).map(r=>({date:r.date,summary:getSummaryFromData(r.data),tasks:getTasksForCal(r.data)}));
+  }catch(e){setSyncStatus('error');return null;}
+}
+function getSummaryFromData(data){
+  if(!data)return{agenda:'',total:0,done:0};
+  return{agenda:data.agenda||'',total:(data.tasks||[]).length,done:(data.tasks||[]).filter(t=>t.done).length};
+}
+function getTasksForCal(data){
+  if(!data)return[];
+  return(data.tasks||[]).map(t=>({name:t.name,category:t.category||'',done:t.done,note:t.note||'',minutesTitle:t.minutesTitle||'',minutesContent:t.minutesContent||'',minutesAction:t.minutesAction||'',minutesAttendees:t.minutesAttendees||'',minutesDatetime:t.minutesDatetime||''}));
+}
+
 async function fetchDay(date){
-  const r=await apiCall({action:'get',date});
-  if(r&&r.ok){const d=r.data||{tasks:[],agenda:'',memo:''};cacheSet('day_'+date,d);return d;}
+  const fresh=await sbGet(date);
+  if(fresh!==null){const d=fresh||{tasks:[],agenda:'',memo:''};cacheSet('day_'+date,d);return d;}
   return cacheGet('day_'+date)||{tasks:[],agenda:'',memo:''};
 }
 async function saveDay(date,data){
   cacheSet('day_'+date,data);
-  const r=await apiCall({action:'set',date,data});
-  if(!r)toast('⚠️ 오프라인 상태예요. 인터넷 연결 후 다시 시도해 주세요.');
-  return r;
+  const ok=await sbSet(date,data);
+  if(!ok)toast('⚠️ 저장 실패. 인터넷 연결을 확인해 주세요.');
+  return ok;
 }
 async function fetchList(){
-  const r=await apiCall({action:'list'});
-  if(r&&r.ok){cacheSet('list',r.list);return r.list;}
+  const r=await sbList();
+  if(r){cacheSet('list',r);return r;}
   return cacheGet('list')||[];
 }
 async function fetchMonth(year,month){
-  const r=await apiCall({action:'listMonth',year,month});
-  if(r&&r.ok){cacheSet('m_'+year+'_'+month,r.list);return r.list;}
+  const r=await sbListMonth(year,month);
+  if(r){cacheSet('m_'+year+'_'+month,r);return r;}
   return cacheGet('m_'+year+'_'+month)||[];
 }
 
