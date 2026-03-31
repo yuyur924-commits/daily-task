@@ -357,7 +357,7 @@
       <div class="section-card">
         <div class="section-head">
           <h3>✅ 할 일 목록</h3>
-          <span style="font-size:10px;color:var(--text3);">■ 낮음 &nbsp;■■ 보통 &nbsp;■■■ 높음 &nbsp;■■■■ 최우선</span>
+          <span style="font-size:10px;color:var(--text3);">🟢 낮음 &nbsp;🟡 보통 &nbsp;🟠 높음 &nbsp;🔴 최우선</span>
         </div>
         <table class="task-table">
           <thead><tr>
@@ -370,8 +370,8 @@
               <input class="add-input add-cat" id="nc" placeholder="구분">
               <input class="add-input" id="nt" placeholder="업무 내용 입력 후 Enter 또는 추가">
               <select class="pri-select" id="np">
-                <option value="1">■</option><option value="2">■■</option>
-                <option value="3" selected>■■■</option><option value="4">■■■■</option>
+                <option value="1">🟢 낮음</option><option value="2">🟡 보통</option>
+                <option value="3" selected>🟠 높음</option><option value="4">🔴 최우선</option>
               </select>
               <button class="add-btn" onclick="addTask()">+ 추가</button>
             </div>
@@ -379,8 +379,8 @@
         </table>
       </div>
       <div class="section-card">
-        <div class="section-head"><h3>💬 회고</h3></div>
-        <textarea class="memo-ta" id="memo-inp" placeholder="잘한 점 / 보완할 점 / 배운 점을 자유롭게..." onblur="saveField('memo')"></textarea>
+        <div class="section-head"><h3>💬 진행 특이사항</h3></div>
+        <textarea class="memo-ta" id="memo-inp" placeholder="미진행 사항 / 이슈사항 / 확인사항 / 개선점 등" onblur="saveField('memo')"></textarea>
       </div>
     </div>
 
@@ -685,7 +685,7 @@ function renderTasks(){
   });
 }
 
-function priBlocks(p){let h='<div class="pri-blocks">';const cls=p>=4?'h4':p>=3?'h3':'';for(let i=1;i<=4;i++)h+=`<div class="pb ${i<=p?'on '+cls:''}"></div>`;return h+'</div>';}
+function priBlocks(p){const icons=['','🟢','🟡','🟠','🔴'];return `<span style="font-size:14px;">${icons[p]||''}</span>`;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function renderStatCards(){
