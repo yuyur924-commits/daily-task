@@ -953,7 +953,7 @@ async function sbListMonth(year,month){
     setSyncStatus('syncing');
     const prefix=year+'-'+String(month).padStart(2,'0');
     if(!currentSession?.user?.id)return null;
-    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?user_id=eq.${currentSession.user.id}&date=like.${prefix}*&select=date,data&order=date.asc`,{headers:getSBHeaders()});
+    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?user_id=eq.${currentSession.user.id}&date=like.${prefix}%25&select=date,data&order=date.asc`,{headers:getSBHeaders()});
     const rows=await res.json();
     setSyncStatus('ok');
     return (rows||[]).map(r=>({date:r.date,summary:getSummaryFromData(r.data),tasks:getTasksForCal(r.data)}));
