@@ -607,12 +607,33 @@ async function apiCall(body){
   try{
     const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
     const json=await res.json();setSyncStatus('ok');return json;
-  }catch(e){setSyncStatus('error');toast('동기화 실패: 인터넷 연결을 확인해 주세요');return null;}
+  }catch(e){setSyncStatus('error');setSyncStatus('error');return null;}
 }
-async function fetchDay(date){const r=await apiCall({action:'get',date});return r&&r.ok?(r.data||{tasks:[],agenda:'',memo:''}):{tasks:[],agenda:'',memo:''};}
-async function saveDay(date,data){return apiCall({action:'set',date,data});}
-async function fetchList(){const r=await apiCall({action:'list'});return r&&r.ok?r.list:[];}
-async function fetchMonth(year,month){const r=await apiCall({action:'listMonth',year,month});return r&&r.ok?r.list:[];}
+/* ─ CACHE ─ */
+const CACHE_KEY='daily_cache_v1';
+function cacheGet(k){try{return(JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')||{})[k]||null;}catch{return null;}}
+function cacheSet(k,v){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');c[k]=v;localStorage.setItem(CACHE_KEY,JSON.stringify(c));}catch{}}
+async function fetchDay(date){
+  const r=await apiCall({action:'get',date});
+  if(r&&r.ok){const d=r.data||{tasks:[],agenda:'',memo:''};cacheSet('day_'+date,d);return d;}
+  return cacheGet('day_'+date)||{tasks:[],agenda:'',memo:''};
+}
+async function saveDay(date,data){
+  cacheSet('day_'+date,data);
+  const r=await apiCall({action:'set',date,data});
+  if(!r)toast('⚠️ 오프라인 상태예요. 인터넷 연결 후 다시 시도해 주세요.');
+  return r;
+}
+async function fetchList(){
+  const r=await apiCall({action:'list'});
+  if(r&&r.ok){cacheSet('list',r.list);return r.list;}
+  return cacheGet('list')||[];
+}
+async function fetchMonth(year,month){
+  const r=await apiCall({action:'listMonth',year,month});
+  if(r&&r.ok){cacheSet('m_'+year+'_'+month,r.list);return r.list;}
+  return cacheGet('m_'+year+'_'+month)||[];
+}
 
 /* ═══════════════════════════════════════
    STATE
@@ -643,9 +664,14 @@ async function init(){
 }
 
 async function loadDay(date){
-  showLoading('불러오는 중...');
-  curDay=await fetchDay(date);
+  // 1) 캐시 있으면 즉시 표시 (로딩 없이)
+  const cached=cacheGet('day_'+date);
+  if(cached){curDay=cached;renderToday();}
+  else showLoading('불러오는 중...');
+  // 2) 백그라운드에서 최신 데이터 가져오기
+  const fresh=await fetchDay(date);
   hideLoading();
+  curDay=fresh;
   renderToday();
 }
 
