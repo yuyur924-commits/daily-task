@@ -183,7 +183,7 @@
   .cal-wd:last-child{color:var(--blue)}
 
   .cal-days{display:grid;grid-template-columns:repeat(7,1fr)}
-  .cal-cell{min-height:110px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 7px 6px;position:relative;cursor:pointer;transition:background .15s;vertical-align:top}
+  .cal-cell{min-height:110px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 7px 6px;position:relative;cursor:pointer;transition:background .15s;vertical-align:top;overflow:hidden;min-width:0;}
   .cal-cell:nth-child(7n){border-right:none}
   .cal-cell:hover{background:var(--accent-soft)}
   .cal-cell.other-month{background:var(--surface2)}
@@ -198,20 +198,8 @@
   .cal-rate-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
 
   /* 캘린더 셀 안의 업무 태그 */
-  .cal-tasks{display:flex;flex-direction:column;gap:2px}
-  .cal-task-item{
-    font-size:10px;
-    line-height:1.3;
-    padding:2px 5px;
-    border-radius:3px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    max-width:100%;
-    position:relative;
-    cursor:default;
-    transition:background .12s;
-  }
+  .cal-tasks{display:flex;flex-direction:column;gap:2px;overflow:hidden;min-width:0;width:100%;}
+  .cal-task-item{font-size:10px;line-height:1.3;padding:2px 5px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:100%;min-width:0;box-sizing:border-box;position:relative;cursor:default;transition:background .12s;display:block;}
   .cal-task-item.t-done{background:var(--green-soft);color:var(--green)}
   .cal-task-item.t-todo{background:var(--accent-soft);color:var(--accent2)}
   .cal-task-item.t-has-extra{cursor:pointer}
