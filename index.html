@@ -939,25 +939,36 @@ async function sbSet(date,data){
   }
 }
 async function sbList(){
+  if(!currentSession?.user?.id){console.warn('sbList: 세션 없음');return null;}
   try{
     setSyncStatus('syncing');
-    if(!currentSession?.user?.id)return null;
-    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?user_id=eq.${currentSession.user.id}&select=date,data&order=date.desc`,{headers:getSBHeaders()});
+    const uid=currentSession.user.id;
+    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?user_id=eq.${uid}&select=date,data&order=date.desc`,{headers:getSBHeaders()});
     const rows=await res.json();
+    if(!res.ok){console.error('sbList error:',rows);setSyncStatus('error');return null;}
+    console.log('sbList rows:',rows?.length);
     setSyncStatus('ok');
     return (rows||[]).map(r=>({date:r.date,summary:getSummaryFromData(r.data)}));
-  }catch(e){setSyncStatus('error');return null;}
+  }catch(e){console.error('sbList exception:',e);setSyncStatus('error');return null;}
 }
 async function sbListMonth(year,month){
+  if(!currentSession?.user?.id){console.warn('sbListMonth: 세션 없음');return null;}
   try{
     setSyncStatus('syncing');
     const prefix=year+'-'+String(month).padStart(2,'0');
-    if(!currentSession?.user?.id)return null;
-    const res=await fetch(`${SB_URL}/rest/v1/daily_tasks?user_id=eq.${currentSession.user.id}&date=like.${prefix}%25&select=date,data&order=date.asc`,{headers:getSBHeaders()});
+    const uid=currentSession.user.id;
+    // gte/lte 방식으로 변경 (like보다 안정적)
+    const dateFrom=`${prefix}-01`;
+    const dateTo=`${prefix}-31`;
+    const url=`${SB_URL}/rest/v1/daily_tasks?user_id=eq.${uid}&date=gte.${dateFrom}&date=lte.${dateTo}&select=date,data&order=date.asc`;
+    console.log('sbListMonth URL:', url);
+    const res=await fetch(url,{headers:getSBHeaders()});
     const rows=await res.json();
+    console.log('sbListMonth rows:', rows?.length, rows);
+    if(!res.ok){console.error('sbListMonth error:',rows);setSyncStatus('error');return null;}
     setSyncStatus('ok');
     return (rows||[]).map(r=>({date:r.date,summary:getSummaryFromData(r.data),tasks:getTasksForCal(r.data)}));
-  }catch(e){setSyncStatus('error');return null;}
+  }catch(e){console.error('sbListMonth exception:',e);setSyncStatus('error');return null;}
 }
 function getSummaryFromData(data){
   if(!data)return{agenda:'',total:0,done:0};
@@ -1209,8 +1220,10 @@ document.getElementById('min-modal').addEventListener('click',e=>{if(e.target===
 let calData={};  // { "2026-03-15": { tasks:[...], summary:{...} } }
 
 async function renderCalendar(){
+  console.log('renderCalendar 실행됨', calYear, calMonth);
   showLoading('캘린더 불러오는 중...');
   const list=await fetchMonth(calYear,calMonth);
+  console.log('fetchMonth 결과:', list?.length, list);
   hideLoading();
 
   calData={};
@@ -2350,6 +2363,7 @@ function getLastWorkday(y,m){
    VIEW SWITCHING
 ═══════════════════════════════════════ */
 function showView(v){
+  console.log('showView:', v);
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
