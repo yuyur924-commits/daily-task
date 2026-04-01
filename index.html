@@ -705,8 +705,8 @@
       </div>
 
       <!-- 전체 사용자 목록 + 팀 관리 -->
-      <div class="section-card" style="margin-bottom:16px;">
-        <div class="section-head"><h3>🔑 전체 사용자 목록 · 팀 설정</h3></div>
+      <div class="section-card" id="admin-user-list-section" style="margin-bottom:16px;display:none;">
+        <div class="section-head"><h3>🔑 전체 사용자 목록 · 파트 설정</h3></div>
         <div id="admin-user-list" style="padding:14px 18px;"></div>
       </div>
 
@@ -3038,16 +3038,15 @@ function renderAdminTeamFilter(){
       PARTS.map(p=>`<button class="ptab ${adminPartFilter===p?'active':''}" onclick="setAdminPartFilter('${esc(p)}',this)">${esc(p)}</button>`).join('');
     return;
   }
-  // 슈퍼 관리자: 팀 필터 버튼 표시
+  // 슈퍼 관리자: 파트 필터 버튼 표시
   wrap.parentElement.style.display='flex';
-  const teams=[...new Set(adminAllData.map(u=>u.team).filter(Boolean))].sort();
   wrap.innerHTML=`<button class="ptab ${adminTeamFilter===''?'active':''}" onclick="setAdminTeamFilter('',this)">전체</button>`+
-    teams.map(t=>`<button class="ptab ${adminTeamFilter===t?'active':''}" onclick="setAdminTeamFilter('${esc(t)}',this)">${esc(t)}</button>`).join('');
+    PARTS.map(p=>`<button class="ptab ${adminTeamFilter===p?'active':''}" onclick="setAdminTeamFilter('${esc(p)}',this)">${esc(p)}</button>`).join('');
 }
 
-function setAdminTeamFilter(team,btn){
+function setAdminTeamFilter(part,btn){
   if(!isSuperAdmin())return;
-  adminTeamFilter=team;
+  adminTeamFilter=part; // 슈퍼관리자도 파트 기준으로 필터
   document.querySelectorAll('#admin-team-filter-wrap .ptab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const {from,to}=getAdminDateRange();
@@ -3068,9 +3067,9 @@ function getFilteredUsers(){
     if(!adminPartFilter)return adminAllData;
     return adminAllData.filter(u=>u.part===adminPartFilter);
   }
-  // 슈퍼 관리자: 팀 필터 적용
+  // 슈퍼 관리자: 파트 필터 적용
   if(!adminTeamFilter)return adminAllData;
-  return adminAllData.filter(u=>u.team===adminTeamFilter);
+  return adminAllData.filter(u=>u.part===adminTeamFilter);
 }
 
 /* ── 대시보드 렌더 ── */
@@ -3158,9 +3157,18 @@ function renderAdminDashboard(from,to){
       });
     });
   } else {
-    // 슈퍼 관리자: 팀별 그룹핑
-    Object.entries(teamGroups).sort().forEach(([team,users])=>{
-      rateHtml+=`<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">${esc(team)}</div>`;
+    // 슈퍼 관리자: 파트별 그룹핑
+    const superPartGroups={};
+    filtered.forEach(u=>{
+      const p=u.part||'(파트 미지정)';
+      if(!superPartGroups[p])superPartGroups[p]=[];
+      superPartGroups[p].push(u);
+    });
+    const superPartOrder=[...PARTS,'(파트 미지정)'];
+    superPartOrder.forEach(part=>{
+      const users=superPartGroups[part];
+      if(!users||!users.length)return;
+      rateHtml+=`<div style="font-size:11px;font-weight:600;color:var(--accent2);padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">${esc(part)}</div>`;
       users.forEach(u=>{
         const tasks=u.days.flatMap(d=>d.data?.tasks||[]);
         const total=tasks.length,done=tasks.filter(t=>t.done).length;
@@ -3169,7 +3177,7 @@ function renderAdminDashboard(from,to){
         rateHtml+=`<div class="admin-user-row">
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;color:var(--text);font-weight:500;">${esc(u.name)}</div>
-            <div style="font-size:11px;color:var(--text3);">${u.part?esc(u.part)+' · ':''}${esc(u.email)}</div>
+            <div style="font-size:11px;color:var(--text3);">${esc(u.email)}</div>
           </div>
           <div class="admin-rate-bar-wrap"><div class="admin-rate-bar-fill" style="width:${rate}%;background:${color};"></div></div>
           <div class="admin-rate-pct" style="color:${color};">${rate}%</div>
@@ -3248,13 +3256,14 @@ function renderAdminDashboard(from,to){
     return;
   }
 
+  const superPartOpts=`<option value="">미지정</option>`+PARTS.map(p=>`<option value="${p}">${p}</option>`).join('');
   userListEl.innerHTML=`
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">이름과 팀/파트를 설정하면 관리자 화면에서 구분해서 볼 수 있어요.</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">이름과 파트를 설정하면 관리자 화면에서 구분해서 볼 수 있어요.</div>
     <table style="width:100%;border-collapse:collapse;font-size:12px;">
       <thead><tr style="background:var(--surface2);">
         <th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);color:var(--text3);">이메일</th>
         <th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);color:var(--text3);">이름</th>
-        <th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);color:var(--text3);">팀/파트</th>
+        <th style="padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);color:var(--text3);">파트</th>
         <th style="padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);color:var(--text3);">마지막 접속</th>
         <th style="padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);color:var(--text3);">저장</th>
       </tr></thead>
@@ -3263,16 +3272,27 @@ function renderAdminDashboard(from,to){
           <tr style="border-bottom:1px solid var(--border);">
             <td style="padding:8px 10px;color:var(--text2);">${esc(u.email)}</td>
             <td style="padding:6px 10px;"><input id="pname_${u.user_id}" value="${esc(u.name)}" style="width:100%;border:1px solid var(--border2);border-radius:4px;padding:4px 7px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;"></td>
-            <td style="padding:6px 10px;"><input id="pteam_${u.user_id}" value="${esc(u.team)}" placeholder="예: 홍카페팀" style="width:100%;border:1px solid var(--border2);border-radius:4px;padding:4px 7px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;"></td>
+            <td style="padding:6px 10px;text-align:center;">
+              <select id="ppart_${u.user_id}" style="border:1px solid var(--border2);border-radius:4px;padding:4px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+                ${superPartOpts}
+              </select>
+            </td>
             <td style="padding:8px 10px;text-align:center;color:var(--text3);">${u.last_sign_in_at?u.last_sign_in_at.slice(0,10):'—'}</td>
             <td style="padding:6px 10px;text-align:center;"><button onclick="saveUserProfile('${u.user_id}','${esc(u.email)}')" style="padding:4px 10px;background:var(--accent);color:white;border:none;border-radius:4px;font-size:11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">저장</button></td>
           </tr>`).join('')}
       </tbody>
     </table>`;
+  // 파트 드롭다운 현재값 반영
+  adminAllData.forEach(u=>{
+    const sel=document.getElementById('ppart_'+u.user_id);
+    if(sel)sel.value=u.part||'';
+  });
 
-  // 관리자 설정 섹션 슈퍼만 표시
+  // 슈퍼 관리자만: 전체사용자목록 + 관리자설정 표시
   const settingsSec=document.getElementById('admin-settings-section');
+  const userListSec=document.getElementById('admin-user-list-section');
   if(settingsSec)settingsSec.style.display=isSuperAdmin()?'block':'none';
+  if(userListSec)userListSec.style.display=isSuperAdmin()?'block':'none';
 
   loadAdminList();
 }
@@ -3280,8 +3300,8 @@ function renderAdminDashboard(from,to){
 /* ── 사용자 프로필 저장 ── */
 async function saveUserProfile(userId,email){
   const name=document.getElementById('pname_'+userId)?.value||'';
-  const team=document.getElementById('pteam_'+userId)?.value||'';
   const part=document.getElementById('ppart_'+userId)?.value||'';
+  // team은 슈퍼관리자가 admins.assigned_team으로 관리 — user_profiles에선 제거
   try{
     const chk=await fetch(`${SB_URL}/rest/v1/user_profiles?user_id=eq.${userId}&select=user_id`,{headers:getSBHeaders()});
     const ex=await chk.json();
@@ -3289,22 +3309,25 @@ async function saveUserProfile(userId,email){
     if(ex&&ex.length>0){
       res=await fetch(`${SB_URL}/rest/v1/user_profiles?user_id=eq.${userId}`,{
         method:'PATCH',headers:{...getSBHeaders(),'Prefer':'return=minimal'},
-        body:JSON.stringify({name,team,part,updated_at:new Date().toISOString()})
+        body:JSON.stringify({name,part,updated_at:new Date().toISOString()})
       });
     } else {
       res=await fetch(`${SB_URL}/rest/v1/user_profiles`,{
         method:'POST',headers:{...getSBHeaders(),'Prefer':'return=minimal'},
-        body:JSON.stringify({user_id:userId,email,name,team,part})
+        body:JSON.stringify({user_id:userId,email,name,part})
       });
     }
-    if(res.status===200||res.status===201||res.status===204){
+    if(res.ok){
       const u=adminAllData.find(u=>u.user_id===userId);
-      if(u){u.name=name;u.team=team;u.part=part;}
-      userProfiles[userId]={name,team,part};
+      if(u){u.name=name;u.part=part;}
+      if(userProfiles[userId])userProfiles[userId]={...userProfiles[userId],name,part};
+      else userProfiles[userId]={name,part,team:''};
       renderAdminTeamFilter();
       toast(`✅ ${name||email} 저장됐어요`);
     } else {
-      toast('저장 실패');
+      const err=await res.text().catch(()=>'');
+      console.error('saveUserProfile:',res.status,err);
+      toast('저장 실패: '+res.status);
     }
   }catch(e){toast('오류: '+e.message);}
 }
@@ -3322,20 +3345,41 @@ function renderAdminUserTasks(){
     const [y,m,dd]=d.date.split('-').map(Number);
     const dow=new Date(y,m-1,dd).getDay();
     const tasks=d.data?.tasks||[];
-    html+=`<div style="border-bottom:1px solid var(--border);padding:10px 18px;">
+    const priIcon=['','🟢','🟡','🟠','🔴'];
+    html+=`<div style="border-bottom:2px solid var(--border);padding:10px 18px;">
       <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px;">${d.date} (${DAYS[dow]}요일)${d.data?.agenda?' · '+esc(d.data.agenda):''}</div>
-      ${tasks.length?tasks.map(t=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">
-          <span style="color:${t.done?'var(--green)':'var(--red)'};">${t.done?'✓':'○'}</span>
-          <span style="flex:1;color:var(--text);">${t.carriedFrom?'🔄 ':''}${esc(t.category?`[${t.category}] `:'')}${esc(t.name)}</span>
-          <span style="color:var(--text3);">${['','🟢','🟡','🟠','🔴'][t.priority]||''}</span>
-          ${t.note?`<span style="font-size:11px;color:var(--text3);">📎 ${esc(t.note)}</span>`:''}
-        </div>`).join('')
+      ${tasks.length?tasks.map(t=>{
+        const noteShort=t.note&&t.note.length>20?t.note.slice(0,20)+'…':t.note||'';
+        const noteFull=t.note||'';
+        const hasMin=!!(t.minutesTitle);
+        return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border);">
+          <span style="flex-shrink:0;color:${t.done?'var(--green)':'var(--red)'};">${t.done?'✓':'○'}</span>
+          <span style="flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.carriedFrom?'🔄 ':''}${t.isRecurring?'🔁 ':''}${esc(t.category?`[${t.category}] `:'')}${esc(t.name)}</span>
+          ${noteShort?`<span title="${esc(noteFull)}" style="flex-shrink:0;font-size:11px;color:var(--text3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;border-bottom:1px dashed var(--border2);">📎 ${esc(noteShort)}</span>`:''}
+          ${hasMin?`<span onclick="showAdminMinutes(${JSON.stringify({title:t.minutesTitle,datetime:t.minutesDatetime,attendees:t.minutesAttendees,content:t.minutesContent,action:t.minutesAction}).replace(/"/g,'&quot;')})" style="flex-shrink:0;font-size:11px;color:var(--blue);cursor:pointer;text-decoration:underline;">📋 회의록</span>`:''}
+          <span style="flex-shrink:0;width:20px;text-align:center;">${priIcon[t.priority]||''}</span>
+        </div>`;
+      }).join('')
       :'<div style="font-size:12px;color:var(--text3);">업무 없음</div>'}
       ${d.data?.memo?`<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:4px;">💬 ${esc(d.data.memo)}</div>`:''}
     </div>`;
   });
   el.innerHTML=html;
+}
+
+function showAdminMinutes(obj){
+  if(typeof obj==='string')obj=JSON.parse(obj);
+  const html=`<div style="font-size:13px;line-height:1.8;">
+    <div style="font-weight:600;font-size:14px;margin-bottom:10px;">📋 ${esc(obj.title||'')}</div>
+    ${obj.datetime?`<div><span style="color:var(--text3);">일시</span> ${esc(obj.datetime)}</div>`:''}
+    ${obj.attendees?`<div><span style="color:var(--text3);">참석자</span> ${esc(obj.attendees)}</div>`:''}
+    ${obj.content?`<div style="margin-top:8px;"><span style="color:var(--text3);">내용</span><div style="margin-top:4px;white-space:pre-wrap;background:var(--surface2);padding:8px 10px;border-radius:4px;font-size:12px;">${esc(obj.content)}</div></div>`:''}
+    ${obj.action?`<div style="margin-top:8px;"><span style="color:var(--text3);">결정사항</span><div style="margin-top:4px;white-space:pre-wrap;background:var(--blue-soft);padding:8px 10px;border-radius:4px;font-size:12px;">${esc(obj.action)}</div></div>`:''}
+  </div>`;
+  document.getElementById('note-view-title').textContent='회의록';
+  document.getElementById('note-view-content').innerHTML=html;
+  document.getElementById('note-view-minutes-wrap').style.display='none';
+  document.getElementById('note-view-modal').classList.add('open');
 }
 
 /* ── 전체 Excel 일괄 다운로드 ── */
@@ -3495,9 +3539,9 @@ async function loadAdminList(){
     const el=document.getElementById('admin-list');
     if(!admins||!admins.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);">등록된 관리자가 없어요</div>';return;}
 
-    // 팀 목록 수집 (드롭다운용)
-    const teams=[...new Set(adminAllData.map(u=>u.team).filter(Boolean))].sort();
-    const teamOpts=`<option value="">전체(제한없음)</option>`+teams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    // 팀 목록 수집 - userProfiles 전체에서 가져옴 (필터 영향 없음)
+    const allTeams=[...new Set(Object.values(userProfiles).map(p=>p.team).filter(Boolean))].sort();
+    const teamOpts=`<option value="">전체(제한없음)</option>`+allTeams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
 
     el.innerHTML=admins.map(a=>`
       <div class="admin-user-chip" style="margin-bottom:6px;flex-wrap:wrap;gap:8px;">
@@ -3530,8 +3574,15 @@ async function updateAdminTeam(adminId,team){
       headers:{...getSBHeaders(),'Prefer':'return=minimal'},
       body:JSON.stringify({assigned_team:team})
     });
-    if(res.status===200||res.status===204){toast(`✅ 담당 팀이 '${team||'전체'}'로 설정됐어요`);}
-    else toast('저장 실패');
+    if(res.ok){
+      toast(`✅ 담당 팀이 '${team||'전체'}'로 설정됐어요`);
+      // 목록 새로고침해서 표시 업데이트
+      await loadAdminList();
+    } else {
+      const err=await res.text().catch(()=>'');
+      console.error('updateAdminTeam error:',res.status,err);
+      toast('저장 실패: '+res.status);
+    }
   }catch(e){toast('오류: '+e.message);}
 }
 
