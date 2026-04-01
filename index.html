@@ -2593,13 +2593,23 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
   wb.created=new Date();
   const {C,hdr,data}=xlsStyle();
 
-  // 날짜를 금~목 순서로 재정렬 (금 토 일 월 화 수 목)
-  const DOW_ORDER=[5,6,0,1,2,3,4]; // 금,토,일,월,화,수,목
-  const sortedDayDatas=[...dayDatas].sort((a,b)=>{
-    const [ay,am,ad]=a.date.split('-').map(Number);
-    const [by,bm,bd]=b.date.split('-').map(Number);
-    const da=new Date(ay,am-1,ad), db=new Date(by,bm-1,bd);
-    return da-db; // 날짜 오름차순 유지 (이미 금~목 순으로 dates 생성)
+  // 행 높이 계산 헬퍼 (텍스트 길이 + 컬럼 너비 기준)
+  function calcHeight(texts,widths,base=18){
+    let maxLines=1;
+    texts.forEach((txt,i)=>{
+      if(!txt)return;
+      const charsPerLine=(widths[i]||20)*1.8; // 한글 고려
+      const lines=Math.ceil(String(txt).length/charsPerLine);
+      if(lines>maxLines)maxLines=lines;
+    });
+    return Math.max(base, maxLines*16+4);
+  }
+
+  // 주말 제외 필터
+  const workDayDatas=dayDatas.filter(({date})=>{
+    const [yy,mm,dd2]=date.split('-').map(Number);
+    const dow=new Date(yy,mm-1,dd2).getDay();
+    return dow!==0&&dow!==6; // 토,일 제외
   });
 
   // ══════════════════════════════
@@ -2607,24 +2617,21 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
   // ══════════════════════════════
   const ws1=wb.addWorksheet('주간 업무 일지',{pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1}});
   ws1.views=[{showGridLines:false}];
-  ws1.columns=[
-    {key:'a',width:12},{key:'b',width:7},{key:'c',width:5},
-    {key:'d',width:12},{key:'e',width:36},{key:'f',width:9},
-    {key:'g',width:9},{key:'h',width:28},{key:'i',width:11}
-  ];
+  // 컬럼: 날짜(12) 요일(7) No(5) 구분(12) 업무내용(36) 우선순위(9) 완료(9) 비고(30) 이월(11)
+  const ws1ColWidths=[12,7,5,12,36,9,9,30,11];
+  ws1.columns=ws1ColWidths.map(w=>({width:w}));
 
-  // 타이틀 행
+  // 타이틀
   ws1.mergeCells('A1:I1');
-  const titleCell=ws1.getCell('A1');
-  titleCell.value='주 간 업 무 일 지';
-  titleCell.font={name:'Malgun Gothic',size:16,bold:true,color:{argb:'FF'+C.headerBg}};
-  titleCell.alignment={horizontal:'center',vertical:'middle'};
-  titleCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EF'}};
+  Object.assign(ws1.getCell('A1'),{value:'주 간 업 무 일 지'});
+  ws1.getCell('A1').font={name:'Malgun Gothic',size:16,bold:true,color:{argb:'FF'+C.headerBg}};
+  ws1.getCell('A1').alignment={horizontal:'center',vertical:'middle'};
+  ws1.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EF'}};
   ws1.getRow(1).height=36;
 
-  // 정보 행 (금~목 기간으로 표시)
-  const firstDate=sortedDayDatas[0]?.date||dates[0];
-  const lastDate=sortedDayDatas[sortedDayDatas.length-1]?.date||dates[6];
+  // 정보 행
+  const firstDate=workDayDatas[0]?.date||dates[0];
+  const lastDate=workDayDatas[workDayDatas.length-1]?.date||dates[6];
   ws1.mergeCells('A2:C2');ws1.mergeCells('D2:F2');ws1.mergeCells('G2:I2');
   data(ws1.getCell('A2'),`작성자: ${userName}`,{bold:true,bg:'F0EBE3',align:'center'});
   data(ws1.getCell('D2'),`기간: ${firstDate} ~ ${lastDate}`,{bold:true,bg:'F0EBE3',align:'center'});
@@ -2632,47 +2639,40 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
   ws1.getRow(2).height=20;
 
   // 컬럼 헤더
-  const hRow=ws1.addRow([]);
-  hRow.height=22;
-  const hCols=['날짜','요일','No','구분','업무 내용','우선순위','완료','비고','비고(이월)'];
-  hCols.forEach((h,i)=>{
-    const cell=hRow.getCell(i+1);
-    hdr(cell,h,C.subHeaderBg,C.subHeaderFg,10,true,'center');
+  const hRow=ws1.addRow([]);hRow.height=22;
+  ['날짜','요일','No','구분','업무 내용','우선순위','완료','비고','비고(이월)'].forEach((h,i)=>{
+    hdr(hRow.getCell(i+1),h,C.subHeaderBg,C.subHeaderFg,10,true,'center');
   });
 
-  // 데이터 행 — rowNum 없애고 ws1.rowCount 사용
   let totalAll=0,doneAll=0;
-  sortedDayDatas.forEach(({date,data:d})=>{
+  workDayDatas.forEach(({date,data:d})=>{
     const tasks=d.tasks||[];
     const [yy,mm,dd2]=date.split('-').map(Number);
     const dow=new Date(yy,mm-1,dd2).getDay();
-    const isWeekend=dow===0||dow===6;
     const total=tasks.length,done=tasks.filter(t=>t.done).length;
     totalAll+=total;doneAll+=done;
 
     if(!tasks.length){
       const r=ws1.addRow([]);r.height=20;
-      const bg=isWeekend?'EDF2F7':C.white;
-      data(r.getCell(1),date,{bg,align:'center'});
-      data(r.getCell(2),DAYS[dow]+'요일',{bg,align:'center'});
-      for(let i=3;i<=8;i++)data(r.getCell(i),'',{bg});
-      data(r.getCell(9),'(업무없음)',{bg,fg:'9E9890',align:'center'});
+      data(r.getCell(1),date,{bg:C.white,align:'center'});
+      data(r.getCell(2),DAYS[dow]+'요일',{bg:C.white,align:'center'});
+      for(let i=3;i<=8;i++)data(r.getCell(i),'',{bg:C.white});
+      data(r.getCell(9),'(업무없음)',{bg:C.white,fg:'9E9890',align:'center'});
     } else {
       const startRowIdx=ws1.rowCount+1;
       tasks.forEach((t,i)=>{
-        // 비고 줄수에 맞게 행 높이 자동
-        const noteLines=t.note?(t.note.length>40?Math.ceil(t.note.length/40)*15+10:20):20;
-        const r=ws1.addRow([]);r.height=Math.max(20,noteLines);
-        const isAlt=i%2===1;
-        const bg=isWeekend?'EDF2F7':isAlt?C.altRow:C.white;
+        const noteLen=t.note?t.note.length:0;
+        const nameLen=t.name?t.name.length:0;
+        const h=calcHeight([t.name,t.note],[36,30]);
+        const r=ws1.addRow([]);r.height=h;
+        const bg=i%2===1?C.altRow:C.white;
         const doneBg=t.done?C.doneBg:(t.carriedFrom?C.carryBg:bg);
 
         if(i===0){
           data(r.getCell(1),date,{bg,align:'center',bold:true});
           data(r.getCell(2),DAYS[dow]+'요일',{bg,align:'center'});
         } else {
-          data(r.getCell(1),'',{bg});
-          data(r.getCell(2),'',{bg});
+          data(r.getCell(1),'',{bg});data(r.getCell(2),'',{bg});
         }
         data(r.getCell(3),i+1,{bg,align:'center'});
         data(r.getCell(4),t.category||'',{bg,align:'center'});
@@ -2681,25 +2681,22 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
         const priBg={1:C.white,2:'FFF9E6',3:'FFF0E6',4:C.undoneBg};
         data(r.getCell(6),priMap[t.priority]||'',{bg:priBg[t.priority]||bg,align:'center'});
         data(r.getCell(7),t.done?'● 완료':'○ 미완료',{bg:t.done?C.doneBg:C.undoneBg,fg:t.done?C.doneFg:C.undoneFg,align:'center',bold:true});
-        data(r.getCell(8),t.note||'',{bg,wrap:true,sz:10});
+        data(r.getCell(8),t.note||'',{bg,wrap:true});
         data(r.getCell(9),t.carriedFrom?`↩ ${t.carriedFrom}`:(t.isRecurring?'↻ 반복':''),{bg:t.carriedFrom?C.carryBg:bg,fg:t.carriedFrom?C.carryFg:'9E9890',align:'center'});
       });
-      // 날짜/요일 셀 병합
       const endRowIdx=ws1.rowCount;
       if(tasks.length>1){
         ws1.mergeCells(`A${startRowIdx}:A${endRowIdx}`);
         ws1.mergeCells(`B${startRowIdx}:B${endRowIdx}`);
-        // 병합 후 정렬 재설정
         ws1.getCell(`A${startRowIdx}`).alignment={horizontal:'center',vertical:'middle'};
         ws1.getCell(`B${startRowIdx}`).alignment={horizontal:'center',vertical:'middle'};
       }
     }
 
-    // 특이사항 행
+    // 특이사항
     if(opts.incMemo&&d.memo&&d.memo.trim()){
       const mr=ws1.addRow([]);
-      const memoLines=Math.ceil(d.memo.length/60)*15+10;
-      mr.height=Math.max(28,memoLines);
+      mr.height=calcHeight([d.memo],[80],28);
       const memoRowIdx=ws1.rowCount;
       ws1.mergeCells(`A${memoRowIdx}:B${memoRowIdx}`);
       ws1.mergeCells(`C${memoRowIdx}:I${memoRowIdx}`);
@@ -2707,14 +2704,12 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
       data(mr.getCell(3),d.memo,{bg:'FDFCFB',wrap:true,fg:'2C2825'});
     }
 
-    // 날짜 구분선
-    const sepRow=ws1.addRow([]);sepRow.height=5;
-    for(let i=1;i<=9;i++){
-      sepRow.getCell(i).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8E4DE'}};
-    }
+    // 구분선
+    const sep=ws1.addRow([]);sep.height=5;
+    for(let i=1;i<=9;i++)sep.getCell(i).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8E4DE'}};
   });
 
-  // 합계 행
+  // 합계
   const totalRow=ws1.addRow([]);totalRow.height=24;
   const totalRate=totalAll?Math.round(doneAll/totalAll*100):0;
   const sumIdx=ws1.rowCount;
@@ -2729,19 +2724,17 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
   // 시트2: 회의록
   // ══════════════════════════════
   if(opts.incMinutes){
-    const ws2=wb.addWorksheet('회의록',{pageSetup:{paperSize:9,orientation:'portrait'}});
+    const ws2=wb.addWorksheet('회의록',{pageSetup:{paperSize:9,orientation:'landscape'}});
     ws2.views=[{showGridLines:false}];
-    ws2.columns=[{width:12},{width:20},{width:25},{width:16},{width:20},{width:42},{width:32}];
+    const ws2ColWidths=[12,20,25,16,20,50,40];
+    ws2.columns=ws2ColWidths.map(w=>({width:w}));
 
     ws2.mergeCells('A1:G1');
-    const t2=ws2.getCell('A1');
-    t2.value='회 의 록';
-    t2.font={name:'Malgun Gothic',size:14,bold:true,color:{argb:'FF'+C.headerBg}};
-    t2.alignment={horizontal:'center',vertical:'middle'};
-    t2.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EF'}};
+    ws2.getCell('A1').value='회 의 록';
+    ws2.getCell('A1').font={name:'Malgun Gothic',size:14,bold:true,color:{argb:'FF'+C.headerBg}};
+    ws2.getCell('A1').alignment={horizontal:'center',vertical:'middle'};
+    ws2.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EF'}};
     ws2.getRow(1).height=32;
-
-    ws2.addRow([]);ws2.getRow(2).height=8;
 
     const mh=ws2.addRow([]);mh.height=22;
     ['날짜','관련 업무','회의 제목','일시','참석자','내용 및 논의사항','결정사항 / 액션아이템'].forEach((h,i)=>{
@@ -2749,10 +2742,11 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
     });
 
     let hasMin=false;
-    dayDatas.forEach(({date,data:d})=>{
+    workDayDatas.forEach(({date,data:d})=>{
       (d.tasks||[]).filter(t=>t.minutesTitle).forEach((t,i)=>{
         hasMin=true;
-        const r=ws2.addRow([]);r.height=60;
+        const h=calcHeight([t.minutesContent,t.minutesAction,t.minutesAttendees],[50,40,20],40);
+        const r=ws2.addRow([]);r.height=h;
         const bg=i%2===0?C.white:C.altRow;
         data(r.getCell(1),date,{bg,align:'center'});
         data(r.getCell(2),t.name||'',{bg,wrap:true});
@@ -2764,8 +2758,8 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
       });
     });
     if(!hasMin){
-      const r=ws2.addRow([]);
-      ws2.mergeCells(`A4:G4`);
+      const r=ws2.addRow([]);r.height=24;
+      ws2.mergeCells(`A3:G3`);
       data(r.getCell(1),'이번 주 회의록이 없어요',{fg:'9E9890',align:'center'});
     }
   }
@@ -2776,16 +2770,14 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
   if(opts.incCarry){
     const ws3=wb.addWorksheet('이월 업무',{pageSetup:{paperSize:9,orientation:'portrait'}});
     ws3.views=[{showGridLines:false}];
-    ws3.columns=[{width:12},{width:8},{width:12},{width:35},{width:12},{width:12}];
+    ws3.columns=[{width:12},{width:8},{width:12},{width:40},{width:12},{width:12}];
 
     ws3.mergeCells('A1:F1');
-    const t3=ws3.getCell('A1');
-    t3.value='이 월 업 무 현 황';
-    t3.font={name:'Malgun Gothic',size:14,bold:true,color:{argb:'FF'+C.headerBg}};
-    t3.alignment={horizontal:'center',vertical:'middle'};
-    t3.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EF'}};
+    ws3.getCell('A1').value='이 월 업 무 현 황';
+    ws3.getCell('A1').font={name:'Malgun Gothic',size:14,bold:true,color:{argb:'FF'+C.headerBg}};
+    ws3.getCell('A1').alignment={horizontal:'center',vertical:'middle'};
+    ws3.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EF'}};
     ws3.getRow(1).height=32;
-    ws3.addRow([]);ws3.getRow(2).height=8;
 
     const ch=ws3.addRow([]);ch.height=22;
     ['이월 날짜','요일','이월 출처','업무명','구분','완료여부'].forEach((h,i)=>{
@@ -2793,12 +2785,13 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
     });
 
     let hasCarry=false;
-    dayDatas.forEach(({date,data:d})=>{
+    workDayDatas.forEach(({date,data:d})=>{
       const [yy,mm,dd2]=date.split('-').map(Number);
       const dow=new Date(yy,mm-1,dd2).getDay();
       (d.tasks||[]).filter(t=>t.carriedFrom).forEach((t,i)=>{
         hasCarry=true;
-        const r=ws3.addRow([]);r.height=20;
+        const h=calcHeight([t.name],[40]);
+        const r=ws3.addRow([]);r.height=h;
         const bg=i%2===0?C.white:C.altRow;
         data(r.getCell(1),date,{bg,align:'center'});
         data(r.getCell(2),DAYS[dow]+'요일',{bg,align:'center'});
@@ -2809,8 +2802,8 @@ async function buildExcelWorkbook(dayDatas,userName,dates,opts){
       });
     });
     if(!hasCarry){
-      const r=ws3.addRow([]);
-      ws3.mergeCells('A4:F4');
+      const r=ws3.addRow([]);r.height=24;
+      ws3.mergeCells('A3:F3');
       data(r.getCell(1),'이번 주 이월 업무가 없어요 ✓',{fg:'3B6D11',align:'center',bold:true,bg:C.doneBg});
     }
   }
