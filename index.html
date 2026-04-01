@@ -2954,10 +2954,25 @@ async function loadAdminData(){
     (profiles||[]).forEach(p=>{userProfiles[p.user_id]={name:p.name||'',team:p.team||''};});
 
     // 3) 기간 내 daily_tasks
-    const taskRes=await fetch(
-      `${SB_URL}/rest/v1/daily_tasks?date=gte.${from}&date=lte.${to}&select=user_id,date,data&order=date.asc`,
-      {headers:getSBHeaders()}
-    );
+    // 팀 관리자: 담당 팀 user_id만 필터해서 가져옴
+    let taskUrl=`${SB_URL}/rest/v1/daily_tasks?date=gte.${from}&date=lte.${to}&select=user_id,date,data&order=date.asc`;
+    if(!isSuperAdmin()&&adminAssignedTeam){
+      // 담당 팀 프로필의 user_id 목록 추출
+      const teamUserIds=(profiles||[])
+        .filter(p=>p.team===adminAssignedTeam)
+        .map(p=>p.user_id);
+      if(teamUserIds.length>0){
+        taskUrl+=`&user_id=in.(${teamUserIds.join(',')})`;
+      } else {
+        // 담당 팀에 아직 프로필 설정된 사람이 없음
+        hideLoading();
+        adminAllData=[];
+        toast('⚠️ 담당 팀에 설정된 사용자가 없어요. 슈퍼 관리자에게 팀 설정을 요청하세요.');
+        renderAdminDashboard(from,to);
+        return;
+      }
+    }
+    const taskRes=await fetch(taskUrl,{headers:getSBHeaders()});
     const allTasks=await taskRes.json();
     console.log('admin tasks:', allTasks?.length);
 
@@ -2980,9 +2995,20 @@ async function loadAdminData(){
       days:tasksByUser[u.user_id]||[]
     }));
 
-    // 팀 관리자는 담당 팀만 볼 수 있음
-    if(!isSuperAdmin()&&adminAssignedTeam){
-      adminAllData=allUsers.filter(u=>u.team===adminAssignedTeam);
+    // 팀 관리자는 담당 팀 사용자만 — 데이터 자체를 필터링
+    if(!isSuperAdmin()){
+      if(adminAssignedTeam){
+        // 담당 팀만
+        adminAllData=allUsers.filter(u=>u.team===adminAssignedTeam);
+      } else {
+        // 담당 팀 미지정 팀 관리자 → 아무것도 못 봄
+        adminAllData=[];
+        hideLoading();
+        toast('⚠️ 담당 팀이 지정되지 않았어요. 슈퍼 관리자에게 문의하세요.');
+        renderAdminTeamFilter();
+        renderAdminDashboard(from,to);
+        return;
+      }
     } else {
       adminAllData=allUsers;
     }
@@ -2998,13 +3024,21 @@ async function loadAdminData(){
 
 /* ── 팀 필터 버튼 렌더 ── */
 function renderAdminTeamFilter(){
-  const teams=[...new Set(adminAllData.map(u=>u.team).filter(Boolean))].sort();
   const wrap=document.getElementById('admin-team-filter-wrap');
+  if(!wrap)return;
+  // 팀 관리자는 팀 필터 불필요 (이미 담당 팀만 로드됨)
+  if(!isSuperAdmin()){
+    wrap.parentElement.style.display='none';
+    return;
+  }
+  wrap.parentElement.style.display='flex';
+  const teams=[...new Set(adminAllData.map(u=>u.team).filter(Boolean))].sort();
   wrap.innerHTML=`<button class="ptab ${adminTeamFilter===''?'active':''}" onclick="setAdminTeamFilter('',this)">전체</button>`+
     teams.map(t=>`<button class="ptab ${adminTeamFilter===t?'active':''}" onclick="setAdminTeamFilter('${esc(t)}',this)">${esc(t)}</button>`).join('');
 }
 
 function setAdminTeamFilter(team,btn){
+  if(!isSuperAdmin())return; // 팀 관리자는 필터 변경 불가
   adminTeamFilter=team;
   document.querySelectorAll('#admin-team-filter-wrap .ptab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -3013,6 +3047,9 @@ function setAdminTeamFilter(team,btn){
 }
 
 function getFilteredUsers(){
+  // 팀 관리자는 adminAllData 자체가 이미 필터됨
+  if(!isSuperAdmin())return adminAllData;
+  // 슈퍼 관리자만 팀 필터 적용
   if(!adminTeamFilter)return adminAllData;
   return adminAllData.filter(u=>u.team===adminTeamFilter);
 }
