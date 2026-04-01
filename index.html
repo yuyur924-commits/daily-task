@@ -3648,7 +3648,9 @@ async function removeTeam(name){
 }
 
 async function loadAdminList(){
-  if(!isSuperAdmin())return; // 팀 관리자는 관리자 목록 못 봄
+  if(!isSuperAdmin())return;
+  // teamsList가 비어있으면 먼저 로드
+  if(!teamsList.length)await loadTeams();
   try{
     const res=await fetch(`${SB_URL}/rest/v1/admins?select=id,email,role,assigned_team,created_at&order=created_at.asc`,{headers:getSBHeaders()});
     const admins=await res.json();
@@ -3656,7 +3658,8 @@ async function loadAdminList(){
     if(!admins||!admins.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);">등록된 관리자가 없어요</div>';return;}
 
     // 파트 고정 목록 사용 (글로벌/일본/신사업)
-    const teamOpts=`<option value="">전체(제한없음)</option>`+PARTS.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    // 담당팀 드롭다운은 팀 목록(teamsList) 사용 — 파트(PARTS) 아님
+    const teamOpts=`<option value="">전체(제한없음)</option>`+teamsList.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
 
     el.innerHTML=admins.map(a=>`
       <div class="admin-user-chip" style="margin-bottom:6px;flex-wrap:wrap;gap:8px;">
