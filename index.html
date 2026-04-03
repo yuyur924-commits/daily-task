@@ -1242,7 +1242,22 @@ async function init(){
     const adminBtn=document.getElementById('admin-nav-btn');
     if(adminBtn)adminBtn.style.display='inline-flex';
   }
-  await loadDay(curDate);
+  // 마지막 탭 복원
+  const lastView=sessionStorage.getItem('lastView')||'today';
+  const validViews=['today','calendar','history','stats','recurring','admin'];
+  const restoreView=validViews.includes(lastView)?lastView:'today';
+
+  // 관리자 탭은 권한 확인 후 복원
+  if(restoreView==='admin'&&!isAdmin){
+    await loadDay(curDate);
+  } else if(restoreView==='today'||restoreView==='admin'){
+    await loadDay(curDate);
+    if(restoreView!=='today')showView(restoreView);
+  } else {
+    await loadDay(curDate);
+    showView(restoreView);
+  }
+
   checkAndCarryOver();
   recurringCache=null;
   injectRecurringTasks();
@@ -1300,8 +1315,10 @@ function renderTasks(){
             <button class="edit-save-btn" onclick="saveEdit(${i})">저장</button>
             <button class="edit-cancel-btn" onclick="cancelEdit()">취소</button>
           </div>
-          <div style="display:flex;gap:6px;margin-top:5px;">
+          <div style="display:flex;gap:6px;margin-top:5px;align-items:center;">
             <input class="edit-input" id="ei-note" value="${esc(t.note||'')}" placeholder="비고 (선택)" style="flex:1;">
+            <span style="font-size:11px;color:var(--text3);white-space:nowrap;">📅 날짜 이동:</span>
+            <input type="date" id="ei-date" value="${curDate}" style="border:1px solid var(--border2);border-radius:4px;padding:4px 7px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
           </div>
         </td>
         <td><button class="del-btn" onclick="delTask(${i})">×</button></td>
@@ -1336,14 +1353,36 @@ function cancelEdit(){editingIdx=-1;renderTasks();}
 async function saveEdit(i){
   const name=document.getElementById('ei-name').value.trim();
   if(!name)return;
-  curDay.tasks[i].category=document.getElementById('ei-cat').value.trim();
-  curDay.tasks[i].name=name;
-  curDay.tasks[i].priority=parseInt(document.getElementById('ei-pri').value);
-  curDay.tasks[i].note=document.getElementById('ei-note').value.trim();
-  editingIdx=-1;
-  renderTasks();renderStatCards();
-  await saveCurrent(true);
-  toast('수정됐어요');
+  const targetDate=document.getElementById('ei-date')?.value||curDate;
+
+  const task={
+    ...curDay.tasks[i],
+    category:document.getElementById('ei-cat').value.trim(),
+    name,
+    priority:parseInt(document.getElementById('ei-pri').value),
+    note:document.getElementById('ei-note').value.trim(),
+  };
+
+  if(targetDate && targetDate!==curDate){
+    // 날짜 이동: 현재 날짜에서 삭제 후 대상 날짜에 추가
+    curDay.tasks.splice(i,1);
+    editingIdx=-1;
+    renderTasks();renderStatCards();
+    await saveCurrent(true);
+
+    // 대상 날짜에 업무 추가
+    const targetDay=await fetchDay(targetDate);
+    targetDay.tasks=targetDay.tasks||[];
+    targetDay.tasks.push({...task,carriedFrom:undefined});
+    await saveDay(targetDate,targetDay);
+    toast(`📅 "${name}" 을 ${targetDate}로 이동했어요`);
+  } else {
+    curDay.tasks[i]=task;
+    editingIdx=-1;
+    renderTasks();renderStatCards();
+    await saveCurrent(true);
+    toast('수정됐어요');
+  }
 }
 
 function priBlocks(p){const icons=['','🟢','🟡','🟠','🔴'];return `<span style="font-size:14px;">${icons[p]||''}</span>`;}
@@ -3790,6 +3829,8 @@ async function removeAdmin(id,email){
 ═══════════════════════════════════════ */
 function showView(v){
   console.log('showView:', v);
+  // 마지막 탭 저장 (새로고침 시 복원)
+  try{sessionStorage.setItem('lastView',v);}catch{}
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
