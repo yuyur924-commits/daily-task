@@ -451,7 +451,10 @@
           <tbody id="task-tbody"></tbody>
           <tfoot><tr class="add-row"><td colspan="6">
             <div class="add-form">
-              <input class="add-input add-cat" id="nc" placeholder="구분">
+              <div style="position:relative;max-width:110px;">
+                <input class="add-input add-cat" id="nc" placeholder="구분" list="cat-datalist" autocomplete="off">
+                <datalist id="cat-datalist"></datalist>
+              </div>
               <input class="add-input" id="nt" placeholder="업무 내용 입력 후 Enter 또는 추가">
               <select class="pri-select" id="np">
                 <option value="4">🔴 최우선</option><option value="3" selected>🟠 높음</option>
@@ -646,6 +649,19 @@
       <div class="empty-state" id="recurring-empty" style="display:none;">
         <p>등록된 반복업무가 없어요<br><span style="font-size:12px;">+ 반복업무 추가 버튼으로 등록해 보세요</span></p>
       </div>
+
+      <!-- 구분 목록 관리 -->
+      <div class="section-card" style="margin-top:20px;">
+        <div class="section-head"><h3>🗂️ 구분 목록 관리</h3></div>
+        <div style="padding:14px 18px;">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">업무 추가 시 드롭다운에 표시될 구분 목록이에요. 직접 입력도 가능해요.</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input id="cat-add-input" class="add-input" placeholder="새 구분 추가 (예: 마케팅, 보고서...)" style="flex:1;" onkeydown="if(event.key==='Enter')addCategoryItem()">
+            <button onclick="addCategoryItem()" class="add-btn">+ 추가</button>
+          </div>
+          <div id="cat-list"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ADMIN -->
@@ -702,11 +718,16 @@
 
       <!-- 사용자별 업무 목록 -->
       <div class="section-card" style="margin-bottom:16px;">
-        <div class="section-head" style="justify-content:space-between;">
+        <div class="section-head" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
           <h3>📋 사용자별 업무 목록</h3>
-          <select id="admin-user-select" onchange="renderAdminUserTasks()" style="border:1px solid var(--border2);border-radius:var(--r2);padding:4px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
-            <option value="">사용자 선택</option>
-          </select>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <select id="admin-cat-filter" onchange="renderAdminUserTasks()" style="border:1px solid var(--border2);border-radius:var(--r2);padding:4px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+              <option value="">전체 구분</option>
+            </select>
+            <select id="admin-user-select" onchange="renderAdminUserTasks()" style="border:1px solid var(--border2);border-radius:var(--r2);padding:4px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+              <option value="">사용자 선택</option>
+            </select>
+          </div>
         </div>
         <div id="admin-user-tasks" style="padding:0;"></div>
       </div>
@@ -1211,6 +1232,7 @@ async function fetchMonth(year,month){
 const DAYS=['일','월','화','수','목','금','토'];
 let curDate=todayStr();
 let curDay={tasks:[],agenda:'',memo:''};
+let categoriesList=[]; // 사용자 구분 목록 캐시
 let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth()+1;
 
@@ -1258,6 +1280,7 @@ async function init(){
     showView(restoreView);
   }
 
+  await loadCategories();
   checkAndCarryOver();
   recurringCache=null;
   injectRecurringTasks();
@@ -1304,7 +1327,8 @@ function renderTasks(){
         <td style="text-align:center;font-size:11px;color:var(--text3);">${i+1}</td>
         <td colspan="3">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <input class="edit-input edit-cat" id="ei-cat" value="${esc(t.category||'')}" placeholder="구분">
+            <input class="edit-input edit-cat" id="ei-cat" value="${esc(t.category||'')}" placeholder="구분" list="cat-datalist-edit" autocomplete="off">
+            <datalist id="cat-datalist-edit">${categoriesList.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
             <input class="edit-input" id="ei-name" value="${esc(t.name)}" placeholder="업무명" style="flex:1;min-width:120px;">
             <select class="pri-select" id="ei-pri">
               <option value="4" ${t.priority===4?'selected':''}>🔴 최우선</option>
@@ -2301,6 +2325,68 @@ async function checkAndCarryOver(){
 
 
 /* ═══════════════════════════════════════
+   구분 목록 (Categories)
+═══════════════════════════════════════ */
+async function loadCategories(){
+  if(!currentSession?.user?.id)return;
+  try{
+    const res=await fetchWithAuth(
+      `${SB_URL}/rest/v1/categories?user_id=eq.${currentSession.user.id}&select=name,sort_order&order=sort_order.asc,name.asc`
+    );
+    const rows=await res.json();
+    categoriesList=(rows||[]).map(r=>r.name);
+  }catch(e){console.error('loadCategories:',e);}
+}
+
+async function saveCategory(name){
+  if(!name||!currentSession?.user?.id)return false;
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/categories`,{
+      method:'POST',
+      headers:{...getSBHeaders(),'Prefer':'return=minimal'},
+      body:JSON.stringify({user_id:currentSession.user.id,name,sort_order:categoriesList.length})
+    });
+    if(res.ok){categoriesList.push(name);return true;}
+    return false;
+  }catch(e){return false;}
+}
+
+async function deleteCategory(name){
+  if(!currentSession?.user?.id)return;
+  try{
+    await fetch(
+      `${SB_URL}/rest/v1/categories?user_id=eq.${currentSession.user.id}&name=eq.${encodeURIComponent(name)}`,
+      {method:'DELETE',headers:getSBHeaders()}
+    );
+    categoriesList=categoriesList.filter(c=>c!==name);
+  }catch(e){console.error('deleteCategory:',e);}
+}
+
+function getCategoryOptions(selectedVal=''){
+  const opts=categoriesList.map(c=>
+    `<option value="${esc(c)}" ${c===selectedVal?'selected':''}>${esc(c)}</option>`
+  ).join('');
+  return `<option value="">구분 선택</option>${opts}<option value="__direct__">✏️ 직접 입력...</option>`;
+}
+
+function handleCategoryChange(selectEl, inputEl){
+  if(selectEl.value==='__direct__'){
+    selectEl.style.display='none';
+    inputEl.style.display='';
+    inputEl.focus();
+    inputEl.value='';
+  }
+}
+
+function handleCategoryInputBlur(inputEl, selectEl){
+  if(!inputEl.value.trim()){
+    inputEl.style.display='none';
+    selectEl.style.display='';
+    selectEl.value='';
+  }
+}
+
+/* ═══════════════════════════════════════
    반복업무
 ═══════════════════════════════════════ */
 /* ── 반복업무 Supabase 연동 ── */
@@ -2354,6 +2440,45 @@ async function loadRecurring(){
 async function saveRecurring_list(list){
   recurringCache=list;
   await sbSetRecurring(list);
+}
+
+/* ── 구분 목록 관리 UI ── */
+function renderCategoryList(){
+  const el=document.getElementById('cat-list');
+  if(!el)return;
+  if(!categoriesList.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);">등록된 구분이 없어요. 위에서 추가해 보세요.</div>';
+    return;
+  }
+  el.innerHTML=categoriesList.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:13px;flex:1;">🗂️ ${esc(c)}</span>
+      <button onclick="deleteCategoryItem('${esc(c)}')" style="font-size:11px;padding:3px 8px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:6px;cursor:pointer;">삭제</button>
+    </div>`).join('');
+}
+
+async function addCategoryItem(){
+  const name=document.getElementById('cat-add-input')?.value.trim();
+  if(!name){toast('구분명을 입력해 주세요');return;}
+  if(categoriesList.includes(name)){toast('이미 있는 구분이에요');return;}
+  const ok=await saveCategory(name);
+  if(ok){
+    document.getElementById('cat-add-input').value='';
+    renderCategoryList();
+    const dl=document.getElementById('cat-datalist');
+    if(dl)dl.innerHTML=categoriesList.map(c=>`<option value="${esc(c)}">`).join('');
+    toast(`✅ '${name}' 구분이 추가됐어요`);
+  } else {
+    toast('추가 실패. 다시 시도해 주세요');
+  }
+}
+
+async function deleteCategoryItem(name){
+  await deleteCategory(name);
+  renderCategoryList();
+  const dl=document.getElementById('cat-datalist');
+  if(dl)dl.innerHTML=categoriesList.map(c=>`<option value="${esc(c)}">`).join('');
+  toast('삭제됐어요');
 }
 
 /* ── 반복업무 렌더 ── */
@@ -3364,7 +3489,7 @@ function renderAdminDashboard(from,to){
     undoneEl.innerHTML=undoneHtml;
   }
 
-  // 사용자 선택 드롭다운 (팀별 그룹핑)
+  // 사용자 선택 드롭다운 (파트별 그룹핑)
   const sel=document.getElementById('admin-user-select');
   let selHtml='<option value="">사용자 선택</option>';
   Object.entries(teamGroups).sort().forEach(([team,users])=>{
@@ -3373,6 +3498,16 @@ function renderAdminDashboard(from,to){
     selHtml+=`</optgroup>`;
   });
   sel.innerHTML=selHtml;
+
+  // 구분 필터 드롭다운 - 전체 데이터에서 구분 수집
+  const allCats=new Set();
+  filtered.forEach(u=>u.days.forEach(d=>(d.data?.tasks||[]).forEach(t=>{if(t.category)allCats.add(t.category);})));
+  const catSel=document.getElementById('admin-cat-filter');
+  if(catSel){
+    const prevCat=catSel.value;
+    catSel.innerHTML='<option value="">전체 구분</option>'+[...allCats].sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    if(prevCat&&allCats.has(prevCat))catSel.value=prevCat;
+  }
 
   // 전체 사용자 목록 + 팀/이름 편집
   const userListEl=document.getElementById('admin-user-list');
@@ -3499,6 +3634,7 @@ async function saveUserProfile(userId,email){
 /* ── 사용자별 업무 목록 ── */
 function renderAdminUserTasks(){
   const uid=document.getElementById('admin-user-select').value;
+  const catFilter=document.getElementById('admin-cat-filter')?.value||'';
   const el=document.getElementById('admin-user-tasks');
   if(!uid){el.innerHTML='';return;}
   const user=adminAllData.find(u=>u.user_id===uid);
@@ -3508,7 +3644,9 @@ function renderAdminUserTasks(){
   user.days.forEach(d=>{
     const [y,m,dd]=d.date.split('-').map(Number);
     const dow=new Date(y,m-1,dd).getDay();
-    const tasks=d.data?.tasks||[];
+    // 구분 필터 적용
+    const tasks=(d.data?.tasks||[]).filter(t=>!catFilter||t.category===catFilter);
+    if(!tasks.length&&catFilter)return; // 해당 구분 업무 없으면 날짜 건너뜀
     const priIcon=['','🟢','🟡','🟠','🔴'];
     html+=`<div style="border-bottom:2px solid var(--border);padding:10px 18px;">
       <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px;">${d.date} (${DAYS[dow]}요일)${d.data?.agenda?' · '+agendaDisp(d.data.agenda):''}</div>
@@ -3839,7 +3977,7 @@ function showView(v){
   document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   if(v==='calendar')renderCalendar();
   if(v==='history'){histFullData=[];renderHistory();}
-  if(v==='recurring')renderRecurring();
+  if(v==='recurring'){renderRecurring();renderCategoryList();}
   if(v==='admin')loadAdminData();
   if(v==='stats'){
     // 모든 서브탭 중 overview만 표시
