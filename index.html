@@ -80,7 +80,7 @@
   .section-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
   .section-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
   .section-head h3{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.3px}
-  .agenda-input{width:100%;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);outline:none;padding:12px 18px}
+  .agenda-input{width:100%;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);outline:none;padding:12px 18px;overflow:hidden}
   .agenda-input::placeholder{color:var(--text3)}
   .task-table{width:100%;border-collapse:collapse}
   .task-table th{padding:9px 13px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);background:var(--surface2);text-align:left}
@@ -309,6 +309,7 @@
   .memo-list-tasks{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
   .memo-task-chip{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent-soft);color:var(--accent2);}
   .memo-task-chip.done{background:var(--green-soft);color:var(--green);}
+  .memo-task-chip.carry{background:var(--blue-soft);color:var(--blue);}
   .highlight{background:#fff3cd;border-radius:2px;padding:0 1px;}
 
   /* ── STATS ENHANCED ── */
@@ -435,7 +436,7 @@
       </div>
       <div class="section-card">
         <div class="section-head"><h3>📌 주요 일정</h3></div>
-        <input class="agenda-input" id="agenda-inp" placeholder="오늘의 주요 일정을 입력하세요..." onblur="saveField('agenda')">
+        <textarea class="agenda-input" id="agenda-inp" placeholder="오늘의 주요 일정을 입력하세요... (Shift+Enter로 줄바꿈)" onblur="saveField('agenda')" rows="2" style="resize:none;line-height:1.6;"></textarea>
       </div>
       <div class="section-card">
         <div class="section-head">
@@ -523,6 +524,9 @@
           <select id="memo-task-filter" onchange="filterMemos()"
             style="border:1px solid var(--border2);border-radius:var(--r2);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text2);background:var(--surface);outline:none;cursor:pointer;min-width:140px;">
             <option value="">전체 업무</option>
+            <option value="__done__">✓ 완료 업무 포함</option>
+            <option value="__undone__">○ 미완료 업무 포함</option>
+            <option value="__carry__">🔄 이월 업무 포함</option>
           </select>
         </div>
         <div id="memo-result-count" style="font-size:12px;color:var(--text3);margin-bottom:10px;"></div>
@@ -961,6 +965,7 @@ async function signOut(){
   currentSession=null;
   adminRole='';
   adminAssignedTeam='';
+  adminAssignedPart='';
   adminAllData=[];
   recurringCache=null;
   curDay={tasks:[],agenda:'',memo:''};
@@ -1679,31 +1684,19 @@ async function renderHistory(){
 
 /* ── 특이사항 모아보기 ── */
 async function renderMemoList(){
-  if(histFullData.length===0){
-    showLoading('특이사항 불러오는 중...');
-    const list=await fetchList();
-    // 메모가 있는 날만 상세 로드
-    const withMemo=list.filter(item=>item.summary&&item.summary.total>0);
-    const details=await Promise.all(withMemo.map(item=>fetchDay(item.date)));
-    histFullData=withMemo.map((item,i)=>({
-      date:item.date,
-      agenda:item.summary.agenda||'',
-      memo:details[i]?.memo||'',
-      tasks:details[i]?.tasks||[]
-    })).filter(d=>d.memo&&d.memo.trim());
-    hideLoading();
-
-    // 업무 필터 옵션 채우기
-    const taskNames=new Set();
-    histFullData.forEach(d=>d.tasks.forEach(t=>{if(t.name)taskNames.add(t.name);}));
-    const sel=document.getElementById('memo-task-filter');
-    sel.innerHTML='<option value="">전체 업무</option>';
-    [...taskNames].sort().forEach(name=>{
-      const opt=document.createElement('option');
-      opt.value=name;opt.textContent=name;
-      sel.appendChild(opt);
-    });
-  }
+  // 항상 새로 로드 (캐시 문제 방지)
+  showLoading('특이사항 불러오는 중...');
+  const list=await fetchList();
+  const withTasks=list.filter(item=>item.summary&&item.summary.total>0);
+  const details=await Promise.all(withTasks.map(item=>fetchDay(item.date)));
+  // 특이사항 없는 날도 포함 (업무 필터 기준으로 보여줘야 함)
+  histFullData=withTasks.map((item,i)=>({
+    date:item.date,
+    agenda:item.summary.agenda||'',
+    memo:details[i]?.memo||'',
+    tasks:details[i]?.tasks||[]
+  }));
+  hideLoading();
   filterMemos();
 }
 
@@ -1717,18 +1710,32 @@ function filterMemos(){
   el.innerHTML='';
 
   let filtered=histFullData.filter(d=>{
-    const memoMatch=!keyword||d.memo.toLowerCase().includes(keyword)||d.agenda.toLowerCase().includes(keyword);
-    const taskMatch=!taskFilter||d.tasks.some(t=>t.name===taskFilter);
-    return memoMatch&&taskMatch;
+    // 키워드 검색: 특이사항 + 주요일정 모두 검색
+    const memoMatch=!keyword||
+      (d.memo&&d.memo.toLowerCase().includes(keyword))||
+      (d.agenda&&d.agenda.toLowerCase().includes(keyword))||
+      d.tasks.some(t=>t.name&&t.name.toLowerCase().includes(keyword));
+
+    // 업무 상태 필터
+    let taskMatch=true;
+    if(taskFilter==='__done__') taskMatch=d.tasks.some(t=>t.done);
+    else if(taskFilter==='__undone__') taskMatch=d.tasks.some(t=>!t.done);
+    else if(taskFilter==='__carry__') taskMatch=d.tasks.some(t=>t.carriedFrom);
+
+    // 특이사항이 있어야 카드 표시 (필터 없을 땐 특이사항 있는 날만)
+    const hasMemo=d.memo&&d.memo.trim();
+    const showCard=taskFilter?taskMatch&&(hasMemo||taskMatch):hasMemo;
+
+    return memoMatch&&showCard;
   });
 
   if(!filtered.length){
     empty.style.display='block';
-    countEl.textContent='';
+    countEl.textContent=keyword?`"${keyword}" 검색 결과 없음`:'';
     return;
   }
   empty.style.display='none';
-  countEl.textContent=`총 ${filtered.length}개의 특이사항`;
+  countEl.textContent=`총 ${filtered.length}개의 기록`;
 
   filtered.forEach(d=>{
     const[y,m,dd]=d.date.split('-').map(Number);
@@ -1738,23 +1745,28 @@ function filterMemos(){
 
     // 키워드 하이라이트
     const highlightText=(text)=>{
-      if(!keyword)return esc(text);
-      return esc(text).replace(new RegExp(esc(keyword),'gi'),match=>`<span class="highlight">${match}</span>`);
+      if(!keyword||!text)return esc(text||'');
+      try{
+        const safe=keyword.split('').map(c=>'.*+?^${}()|[]\\'.includes(c)?'\\'+c:c).join('');
+        return esc(text).replace(new RegExp(safe,'gi'),match=>`<span class="highlight">${match}</span>`);
+      }catch(e){return esc(text);}
     };
 
-    // 연결된 업무 (taskFilter가 있으면 해당 업무만, 없으면 최대 4개)
-    const relTasks=taskFilter
-      ?d.tasks.filter(t=>t.name===taskFilter)
-      :d.tasks.slice(0,4);
+    // 필터에 맞는 업무 표시
+    let relTasks=[];
+    if(taskFilter==='__done__') relTasks=d.tasks.filter(t=>t.done);
+    else if(taskFilter==='__undone__') relTasks=d.tasks.filter(t=>!t.done);
+    else if(taskFilter==='__carry__') relTasks=d.tasks.filter(t=>t.carriedFrom);
+    else relTasks=d.tasks.slice(0,4);
 
     card.innerHTML=`
       <div class="memo-list-date">
         ${d.date} (${DAYS[dt.getDay()]}요일)
-        ${d.agenda?`<span class="memo-list-agenda">· ${esc(d.agenda)}</span>`:''}
+        ${d.agenda?`<span class="memo-list-agenda">· ${highlightText(d.agenda)}</span>`:''}
       </div>
-      <div class="memo-list-body">${highlightText(d.memo)}</div>
+      ${d.memo?`<div class="memo-list-body">${highlightText(d.memo)}</div>`:''}
       ${relTasks.length?`<div class="memo-list-tasks">
-        ${relTasks.map(t=>`<span class="memo-task-chip ${t.done?'done':''}">${t.done?'✓ ':''  }${esc(t.name)}</span>`).join('')}
+        ${relTasks.map(t=>`<span class="memo-task-chip ${t.done?'done':''} ${t.carriedFrom?'carry':''}">${t.done?'✓ ':t.carriedFrom?'🔄 ':''}${highlightText(t.name)}</span>`).join('')}
         ${!taskFilter&&d.tasks.length>4?`<span class="memo-task-chip">+${d.tasks.length-4}개</span>`:''}
       </div>`:''}
     `;
@@ -2931,18 +2943,20 @@ let teamsList=[]; // DB에 등록된 팀 목록
 /* ── 관리자 여부 확인 ── */
 let adminRole=''; // 'super' | 'team' | ''
 let adminAssignedTeam=''; // 팀 관리자의 담당 팀
+let adminAssignedPart=''; // 파트 관리자의 담당 파트 (글로벌/일본/신사업/'')
 
 async function checkAdmin(){
   if(!currentSession?.user?.email)return false;
   try{
     const res=await fetch(
-      `${SB_URL}/rest/v1/admins?email=eq.${encodeURIComponent(currentSession.user.email)}&select=email,role,assigned_team`,
+      `${SB_URL}/rest/v1/admins?email=eq.${encodeURIComponent(currentSession.user.email)}&select=email,role,assigned_team,assigned_part`,
       {headers:getSBHeaders()}
     );
     const rows=await res.json();
     if(rows&&rows.length>0){
       adminRole=rows[0].role||'team';
       adminAssignedTeam=rows[0].assigned_team||'';
+      adminAssignedPart=rows[0].assigned_part||'';
       return true;
     }
     return false;
@@ -3032,21 +3046,15 @@ async function loadAdminData(){
     // 3) 기간 내 daily_tasks
     // 팀 관리자: 담당 팀 user_id만 필터해서 가져옴
     let taskUrl=`${SB_URL}/rest/v1/daily_tasks?date=gte.${from}&date=lte.${to}&select=user_id,date,data&order=date.asc`;
-    if(!isSuperAdmin()&&adminAssignedTeam){
-      // 담당 팀 프로필의 user_id 목록 추출
-      const teamUserIds=(profiles||[])
-        .filter(p=>p.team===adminAssignedTeam)
+    if(!isSuperAdmin()&&adminAssignedPart){
+      // 담당 파트 프로필의 user_id 목록 추출
+      const partUserIds=(profiles||[])
+        .filter(p=>p.part===adminAssignedPart)
         .map(p=>p.user_id);
-      if(teamUserIds.length>0){
-        taskUrl+=`&user_id=in.(${teamUserIds.join(',')})`;
-      } else {
-        // 담당 팀에 아직 프로필 설정된 사람이 없음
-        hideLoading();
-        adminAllData=[];
-        toast('⚠️ 담당 팀에 설정된 사용자가 없어요. 슈퍼 관리자에게 팀 설정을 요청하세요.');
-        renderAdminDashboard(from,to);
-        return;
+      if(partUserIds.length>0){
+        taskUrl+=`&user_id=in.(${partUserIds.join(',')})`;
       }
+      // 없으면 빈 결과 (전체 조회 안 함)
     }
     const taskRes=await fetchWithAuth(taskUrl);
     const allTasks=await taskRes.json();
@@ -3072,19 +3080,14 @@ async function loadAdminData(){
       days:tasksByUser[u.user_id]||[]
     }));
 
-    // 팀 관리자는 담당 팀 사용자만 — 데이터 자체를 필터링
+    // 파트 관리자는 담당 파트 사용자만 — 데이터 자체를 필터링
     if(!isSuperAdmin()){
-      if(adminAssignedTeam){
-        // 담당 팀만
-        adminAllData=allUsers.filter(u=>u.team===adminAssignedTeam);
+      if(adminAssignedPart){
+        // 담당 파트만
+        adminAllData=allUsers.filter(u=>u.part===adminAssignedPart);
       } else {
-        // 담당 팀 미지정 팀 관리자 → 아무것도 못 봄
-        adminAllData=[];
-        hideLoading();
-        toast('⚠️ 담당 팀이 지정되지 않았어요. 슈퍼 관리자에게 문의하세요.');
-        renderAdminTeamFilter();
-        renderAdminDashboard(from,to);
-        return;
+        // 담당 파트 미지정 → 전체 조회 (제한없음)
+        adminAllData=allUsers;
       }
     } else {
       adminAllData=allUsers;
@@ -3107,11 +3110,16 @@ function renderAdminTeamFilter(){
   const wrap=document.getElementById('admin-team-filter-wrap');
   if(!wrap)return;
   if(!isSuperAdmin()){
-    // 팀 관리자: 파트 필터 버튼 표시
-    wrap.parentElement.style.display='flex';
-    wrap.innerHTML=
-      `<button class="ptab ${adminPartFilter===''?'active':''}" onclick="setAdminPartFilter('',this)">전체</button>`+
-      PARTS.map(p=>`<button class="ptab ${adminPartFilter===p?'active':''}" onclick="setAdminPartFilter('${esc(p)}',this)">${esc(p)}</button>`).join('');
+    if(adminAssignedPart){
+      // 담당 파트 고정 → 필터 숨김
+      wrap.parentElement.style.display='none';
+    } else {
+      // 전체 권한 관리자 → 파트 필터 표시
+      wrap.parentElement.style.display='flex';
+      wrap.innerHTML=
+        `<button class="ptab ${adminPartFilter===''?'active':''}" onclick="setAdminPartFilter('',this)">전체</button>`+
+        PARTS.map(p=>`<button class="ptab ${adminPartFilter===p?'active':''}" onclick="setAdminPartFilter('${esc(p)}',this)">${esc(p)}</button>`).join('');
+    }
     return;
   }
   // 슈퍼 관리자: 팀 필터 버튼 표시
@@ -3695,7 +3703,7 @@ async function loadAdminList(){
   // teamsList가 비어있으면 먼저 로드
   if(!teamsList.length)await loadTeams();
   try{
-    const res=await fetch(`${SB_URL}/rest/v1/admins?select=id,email,role,assigned_team,created_at&order=created_at.asc`,{headers:getSBHeaders()});
+    const res=await fetch(`${SB_URL}/rest/v1/admins?select=id,email,role,assigned_team,assigned_part,created_at&order=created_at.asc`,{headers:getSBHeaders()});
     const admins=await res.json();
     const el=document.getElementById('admin-list');
     if(!admins||!admins.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);">등록된 관리자가 없어요</div>';return;}
@@ -3704,46 +3712,46 @@ async function loadAdminList(){
     // 담당팀 드롭다운은 팀 목록(teamsList) 사용 — 파트(PARTS) 아님
     const teamOpts=`<option value="">전체(제한없음)</option>`+teamsList.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
 
+    const partOpts2=`<option value="">전체(제한없음)</option>`+PARTS.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
     el.innerHTML=admins.map(a=>`
       <div class="admin-user-chip" style="margin-bottom:6px;flex-wrap:wrap;gap:8px;">
         <div style="flex:1;min-width:180px;">
           <div style="font-size:13px;font-weight:500;">${esc(a.email)}${a.email===currentSession?.user?.email?' <span style="font-size:10px;color:var(--accent);">(나)</span>':''}</div>
           <div style="font-size:11px;color:var(--text3);margin-top:2px;">
-            ${a.role==='super'?'<span style="color:var(--red);font-weight:600;">슈퍼 관리자</span>':'<span style="color:var(--blue);">팀 관리자</span>'}
-            ${a.assigned_team&&a.role!=='super'?` · 담당: ${esc(a.assigned_team)}`:''}
+            ${a.role==='super'?'<span style="color:var(--red);font-weight:600;">슈퍼 관리자</span>':'<span style="color:var(--blue);">관리자</span>'}
+            ${a.assigned_part&&a.role!=='super'?` · 담당: ${esc(a.assigned_part)} 파트`:(a.role!=='super'?' · 전체 조회':'')}
           </div>
         </div>
         ${a.role!=='super'?`
-          <select id="ateam_${a.id}" onchange="updateAdminTeam('${a.id}',this.value)" style="border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
-            ${teamOpts}
+          <select id="apart_${a.id}" onchange="updateAdminPart('${a.id}',this.value)" style="border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+            ${partOpts2}
           </select>`:''}
         ${a.email!==currentSession?.user?.email?`<button onclick="removeAdmin('${a.id}','${esc(a.email)}')" style="font-size:11px;padding:3px 8px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:6px;cursor:pointer;flex-shrink:0;">삭제</button>`:''}
       </div>`).join('');
 
-    // 저장된 담당팀 선택 반영
+    // 저장된 담당파트 선택 반영
     admins.forEach(a=>{
-      const sel=document.getElementById('ateam_'+a.id);
-      if(sel&&a.assigned_team)sel.value=a.assigned_team;
+      const sel=document.getElementById('apart_'+a.id);
+      if(sel)sel.value=a.assigned_part||'';
     });
     // 팀 목록 렌더
     renderTeamsList();
   }catch(e){console.error('loadAdminList:',e);}
 }
 
-async function updateAdminTeam(adminId,team){
+async function updateAdminPart(adminId,part){
   try{
     const res=await fetch(`${SB_URL}/rest/v1/admins?id=eq.${adminId}`,{
       method:'PATCH',
       headers:{...getSBHeaders(),'Prefer':'return=minimal'},
-      body:JSON.stringify({assigned_team:team})
+      body:JSON.stringify({assigned_part:part})
     });
     if(res.ok){
-      toast(`✅ 담당 팀이 '${team||'전체'}'로 설정됐어요`);
-      // 목록 새로고침해서 표시 업데이트
+      toast(`✅ 담당 파트가 '${part||'전체(제한없음)'}'로 설정됐어요`);
       await loadAdminList();
     } else {
       const err=await res.text().catch(()=>'');
-      console.error('updateAdminTeam error:',res.status,err);
+      console.error('updateAdminPart error:',res.status,err);
       toast('저장 실패: '+res.status);
     }
   }catch(e){toast('오류: '+e.message);}
