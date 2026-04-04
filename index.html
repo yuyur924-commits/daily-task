@@ -406,6 +406,7 @@
     </nav>
     <div class="header-right">
       <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">연결됨</span></div>
+      <button id="manual-save-btn" onclick="manualSave()" style="padding:4px 12px;border:1px solid var(--border2);border-radius:10px;background:transparent;font-size:11px;color:var(--text2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">💾 저장</button>
       <button onclick="openDownloadModal()" style="padding:4px 12px;border:1px solid var(--border2);border-radius:10px;background:transparent;font-size:11px;color:var(--text2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">📥 주간보고</button>
       <div style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px;">
         <span id="user-email" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -436,7 +437,7 @@
       </div>
       <div class="section-card">
         <div class="section-head"><h3>📌 주요 일정</h3></div>
-        <textarea class="agenda-input" id="agenda-inp" placeholder="오늘의 주요 일정을 입력하세요... (Enter로 줄바꿈)" onblur="saveField('agenda')" rows="2" style="resize:none;line-height:1.6;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur();}"></textarea>
+        <textarea class="agenda-input" id="agenda-inp" placeholder="오늘의 주요 일정을 입력하세요... (Enter로 줄바꿈)" onblur="saveField('agenda')" oninput="markUnsaved()" rows="2" style="resize:none;line-height:1.6;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur();}"></textarea>
       </div>
       <div class="section-card">
         <div class="section-head">
@@ -467,7 +468,7 @@
       </div>
       <div class="section-card">
         <div class="section-head"><h3>💬 진행 특이사항</h3></div>
-        <textarea class="memo-ta" id="memo-inp" placeholder="미진행 사항 / 이슈사항 / 확인사항 / 개선점 등" onblur="saveField('memo')"></textarea>
+        <textarea class="memo-ta" id="memo-inp" placeholder="미진행 사항 / 이슈사항 / 확인사항 / 개선점 등" onblur="saveField('memo')" oninput="markUnsaved()"></textarea>
       </div>
     </div>
 
@@ -652,13 +653,22 @@
 
       <!-- 구분 목록 관리 -->
       <div class="section-card" style="margin-top:20px;">
-        <div class="section-head"><h3>🗂️ 구분 목록 관리</h3></div>
+        <div class="section-head"><h3>🗂️ 구분 목록</h3></div>
         <div style="padding:14px 18px;">
-          <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">업무 추가 시 드롭다운에 표시될 구분 목록이에요. 직접 입력도 가능해요.</div>
-          <div style="display:flex;gap:8px;margin-bottom:12px;">
-            <input id="cat-add-input" class="add-input" placeholder="새 구분 추가 (예: 마케팅, 보고서...)" style="flex:1;" onkeydown="if(event.key==='Enter')addCategoryItem()">
-            <button onclick="addCategoryItem()" class="add-btn">+ 추가</button>
+          <div id="cat-admin-add" style="display:none;margin-bottom:14px;">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">파트별 구분 목록을 관리해요. 슈퍼 관리자만 추가/삭제할 수 있어요.</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+              <select id="cat-part-select" style="border:1px solid var(--border2);border-radius:var(--r2);padding:6px 10px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+                <option value="공통">공통</option>
+                <option value="글로벌">글로벌</option>
+                <option value="일본">일본</option>
+                <option value="신사업">신사업</option>
+              </select>
+              <input id="cat-add-input" class="add-input" placeholder="새 구분명 (예: 마케팅, 보고서...)" style="flex:1;min-width:140px;" onkeydown="if(event.key==='Enter')addCategoryItem()">
+              <button onclick="addCategoryItem()" class="add-btn">+ 추가</button>
+            </div>
           </div>
+          <div id="cat-read-desc" style="font-size:12px;color:var(--text2);margin-bottom:10px;display:none;">본인 파트 구분 목록이에요. 업무 추가 시 드롭다운으로 선택할 수 있어요.</div>
           <div id="cat-list"></div>
         </div>
       </div>
@@ -1209,11 +1219,61 @@ async function fetchDay(date){
   if(fresh!==null){const d=fresh||{tasks:[],agenda:'',memo:''};cacheSet('day_'+date,d);return d;}
   return cacheGet('day_'+date)||{tasks:[],agenda:'',memo:''};
 }
+async function manualSave(){
+  const btn=document.getElementById('manual-save-btn');
+  if(btn){btn.textContent='💾 저장 중...';btn.style.color='var(--accent)';}
+  try{
+    // 현재 입력 중인 필드 강제 저장
+    const agendaEl=document.getElementById('agenda-inp');
+    if(agendaEl)curDay.agenda=agendaEl.value;
+    const memoEl=document.getElementById('memo-inp');
+    if(memoEl)curDay.memo=memoEl.value;
+    await saveCurrent(true);
+    if(btn){btn.textContent='✅ 저장됨';btn.style.color='var(--green)';}
+    setTimeout(()=>{
+      if(btn){btn.textContent='💾 저장';btn.style.color='';}
+    },2000);
+    markSaved();
+    toast('💾 저장됐어요');
+  }catch(e){
+    if(btn){btn.textContent='💾 저장';btn.style.color='';}
+    toast('⚠️ 저장 실패');
+  }
+}
+
+let _unsavedChanges=false; // 미저장 변경사항 추적
+
+function markUnsaved(){_unsavedChanges=true;setTimeout(updateUnsavedIndicator,0);}
+function markSaved(){_unsavedChanges=false;setTimeout(updateUnsavedIndicator,0);}
+
+// 페이지 닫기 전 경고
+window.addEventListener('beforeunload',e=>{
+  if(_unsavedChanges){
+    e.preventDefault();
+    e.returnValue='저장되지 않은 내용이 있어요. 페이지를 떠나시겠어요?';
+    return e.returnValue;
+  }
+});
+
 async function saveDay(date,data){
   cacheSet('day_'+date,data);
-  const ok=await sbSet(date,data);
-  if(!ok)toast('⚠️ 저장 실패. 인터넷 연결을 확인해 주세요.');
+  const ok=await sbSetWithRetry(date,data);
+  if(ok)markSaved();
+  else toast('⚠️ 저장 실패. 인터넷 연결을 확인해 주세요.');
   return ok;
+}
+
+// 저장 실패 시 최대 3번 재시도
+async function sbSetWithRetry(date,data,maxRetry=3){
+  for(let i=0;i<maxRetry;i++){
+    const ok=await sbSet(date,data);
+    if(ok)return true;
+    if(i<maxRetry-1){
+      await new Promise(r=>setTimeout(r,1500*(i+1))); // 1.5s, 3s 대기
+      toast(`🔄 저장 재시도 중... (${i+2}/${maxRetry})`);
+    }
+  }
+  return false;
 }
 async function fetchList(){
   const r=await sbList();
@@ -1244,6 +1304,21 @@ function setSyncStatus(s){
   const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
   dot.className='sync-dot'+(s==='syncing'?' syncing':s==='error'?' error':'');
   lbl.textContent=s==='syncing'?'동기화 중':s==='error'?'오류':'연결됨';
+}
+
+// 미저장 상태 헤더 표시
+function updateUnsavedIndicator(){
+  const btn=document.getElementById('manual-save-btn');
+  if(!btn)return;
+  if(_unsavedChanges){
+    btn.textContent='💾 저장 필요';
+    btn.style.borderColor='var(--red)';
+    btn.style.color='var(--red)';
+  } else {
+    btn.textContent='💾 저장';
+    btn.style.borderColor='';
+    btn.style.color='';
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -1363,7 +1438,7 @@ function renderTasks(){
         <td>${priBlocks(t.priority)}</td>
         <td style="text-align:center;"><div class="chk ${t.done?'on':''}" onclick="toggleTask(${i})"></div></td>
         <td><button class="del-btn" onclick="delTask(${i})">×</button></td>
-        <td><input class="note-input" value="${esc(t.note||'')}" placeholder="비고" onblur="saveNote(${i},this.value)"></td>
+        <td><input class="note-input" value="${esc(t.note||'')}" placeholder="비고" oninput="markUnsaved()" onblur="saveNote(${i},this.value)"></td>
       `;
       tr.addEventListener('dblclick',()=>startEdit(i));
       tr.title='더블클릭하면 수정할 수 있어요';
@@ -1445,6 +1520,7 @@ async function saveField(field){
   if(field==='agenda')curDay.agenda=document.getElementById('agenda-inp').value;
   if(field==='memo')curDay.memo=document.getElementById('memo-inp').value;
   await saveCurrent(true);
+  markSaved();
 }
 async function saveCurrent(silent){
   if(!silent)showLoading('저장 중...');
@@ -2330,32 +2406,43 @@ async function checkAndCarryOver(){
 async function loadCategories(){
   if(!currentSession?.user?.id)return;
   try{
-    const res=await fetchWithAuth(
-      `${SB_URL}/rest/v1/categories?user_id=eq.${currentSession.user.id}&select=name,sort_order&order=sort_order.asc,name.asc`
+    // 사용자 파트 확인
+    const profRes=await fetchWithAuth(
+      `${SB_URL}/rest/v1/user_profiles?user_id=eq.${currentSession.user.id}&select=part`
     );
+    const prof=await profRes.json();
+    const userPart=(prof&&prof[0]?.part)||'';
+
+    // 해당 파트 + 공통 구분 로드
+    let url=`${SB_URL}/rest/v1/categories?select=name,part,sort_order&order=sort_order.asc,name.asc`;
+    if(userPart){
+      url+=`&or=(part.eq.${encodeURIComponent(userPart)},part.eq.공통)`;
+    } else {
+      url+=`&part=eq.공통`; // 파트 미지정이면 공통만
+    }
+    const res=await fetchWithAuth(url);
     const rows=await res.json();
     categoriesList=(rows||[]).map(r=>r.name);
   }catch(e){console.error('loadCategories:',e);}
 }
 
-async function saveCategory(name){
-  if(!name||!currentSession?.user?.id)return false;
+async function saveCategory(name,part){
+  if(!name)return false;
   try{
     const res=await fetch(`${SB_URL}/rest/v1/categories`,{
       method:'POST',
       headers:{...getSBHeaders(),'Prefer':'return=minimal'},
-      body:JSON.stringify({user_id:currentSession.user.id,name,sort_order:categoriesList.length})
+      body:JSON.stringify({part:part||'공통',name,sort_order:99})
     });
-    if(res.ok){categoriesList.push(name);return true;}
+    if(res.ok){return true;}
     return false;
   }catch(e){return false;}
 }
 
-async function deleteCategory(name){
-  if(!currentSession?.user?.id)return;
+async function deleteCategory(name,part){
   try{
     await fetch(
-      `${SB_URL}/rest/v1/categories?user_id=eq.${currentSession.user.id}&name=eq.${encodeURIComponent(name)}`,
+      `${SB_URL}/rest/v1/categories?name=eq.${encodeURIComponent(name)}&part=eq.${encodeURIComponent(part)}`,
       {method:'DELETE',headers:getSBHeaders()}
     );
     categoriesList=categoriesList.filter(c=>c!==name);
@@ -2443,41 +2530,75 @@ async function saveRecurring_list(list){
 }
 
 /* ── 구분 목록 관리 UI ── */
-function renderCategoryList(){
+let allCategoriesData=[]; // {part, name} 전체 목록 (슈퍼관리자용)
+
+async function loadAllCategories(){
+  try{
+    const res=await fetchWithAuth(
+      `${SB_URL}/rest/v1/categories?select=name,part,sort_order&order=part.asc,sort_order.asc,name.asc`
+    );
+    const rows=await res.json();
+    allCategoriesData=rows||[];
+  }catch(e){console.error('loadAllCategories:',e);}
+}
+
+async function renderCategoryList(){
   const el=document.getElementById('cat-list');
   if(!el)return;
-  if(!categoriesList.length){
-    el.innerHTML='<div style="font-size:12px;color:var(--text3);">등록된 구분이 없어요. 위에서 추가해 보세요.</div>';
-    return;
+
+  if(isAdmin&&isSuperAdmin()){
+    // 슈퍼관리자: 파트별 전체 목록 + 추가/삭제
+    await loadAllCategories();
+    const partOrder=['공통',...PARTS];
+    let html='';
+    partOrder.forEach(part=>{
+      const items=allCategoriesData.filter(c=>c.part===part);
+      html+=`<div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:600;color:var(--accent2);padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:6px;">${esc(part)}</div>
+        ${items.length?items.map(c=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
+            <span style="font-size:13px;flex:1;">🗂️ ${esc(c.name)}</span>
+            <button onclick="deleteCategoryItem('${esc(c.name)}','${esc(part)}')" style="font-size:11px;padding:2px 8px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:6px;cursor:pointer;">삭제</button>
+          </div>`).join('')
+        :'<div style="font-size:12px;color:var(--text3);padding:4px 0;">없음</div>'}
+      </div>`;
+    });
+    el.innerHTML=html||'<div style="font-size:12px;color:var(--text3);">등록된 구분이 없어요</div>';
+  } else {
+    // 일반 사용자: 본인 파트 구분 읽기만
+    if(!categoriesList.length){
+      el.innerHTML='<div style="font-size:12px;color:var(--text3);">등록된 구분이 없어요. 관리자에게 문의하세요.</div>';
+      return;
+    }
+    el.innerHTML=categoriesList.map(c=>`
+      <div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;">🗂️ ${esc(c)}</div>`).join('');
   }
-  el.innerHTML=categoriesList.map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
-      <span style="font-size:13px;flex:1;">🗂️ ${esc(c)}</span>
-      <button onclick="deleteCategoryItem('${esc(c)}')" style="font-size:11px;padding:3px 8px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:6px;cursor:pointer;">삭제</button>
-    </div>`).join('');
 }
 
 async function addCategoryItem(){
+  if(!isSuperAdmin()){toast('슈퍼 관리자만 구분을 추가할 수 있어요');return;}
   const name=document.getElementById('cat-add-input')?.value.trim();
+  const part=document.getElementById('cat-part-select')?.value||'공통';
   if(!name){toast('구분명을 입력해 주세요');return;}
-  if(categoriesList.includes(name)){toast('이미 있는 구분이에요');return;}
-  const ok=await saveCategory(name);
+  const exists=allCategoriesData.some(c=>c.name===name&&c.part===part);
+  if(exists){toast('이미 있는 구분이에요');return;}
+  const ok=await saveCategory(name,part);
   if(ok){
     document.getElementById('cat-add-input').value='';
-    renderCategoryList();
+    await renderCategoryList();
+    await loadCategories(); // 개인 캐시도 갱신
     const dl=document.getElementById('cat-datalist');
     if(dl)dl.innerHTML=categoriesList.map(c=>`<option value="${esc(c)}">`).join('');
-    toast(`✅ '${name}' 구분이 추가됐어요`);
+    toast(`✅ '[${part}] ${name}' 구분이 추가됐어요`);
   } else {
-    toast('추가 실패. 다시 시도해 주세요');
+    toast('추가 실패');
   }
 }
 
-async function deleteCategoryItem(name){
-  await deleteCategory(name);
-  renderCategoryList();
-  const dl=document.getElementById('cat-datalist');
-  if(dl)dl.innerHTML=categoriesList.map(c=>`<option value="${esc(c)}">`).join('');
+async function deleteCategoryItem(name,part){
+  if(!isSuperAdmin()){toast('슈퍼 관리자만 삭제할 수 있어요');return;}
+  await deleteCategory(name,part||'공통');
+  await renderCategoryList();
   toast('삭제됐어요');
 }
 
@@ -3977,7 +4098,20 @@ function showView(v){
   document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   if(v==='calendar')renderCalendar();
   if(v==='history'){histFullData=[];renderHistory();}
-  if(v==='recurring'){renderRecurring();renderCategoryList();}
+  if(v==='recurring'){
+    renderRecurring();
+    // 구분 목록 UI 권한별 설정
+    const adminAdd=document.getElementById('cat-admin-add');
+    const readDesc=document.getElementById('cat-read-desc');
+    if(isAdmin&&isSuperAdmin()){
+      if(adminAdd)adminAdd.style.display='block';
+      if(readDesc)readDesc.style.display='none';
+    } else {
+      if(adminAdd)adminAdd.style.display='none';
+      if(readDesc)readDesc.style.display='block';
+    }
+    renderCategoryList();
+  }
   if(v==='admin')loadAdminData();
   if(v==='stats'){
     // 모든 서브탭 중 overview만 표시
