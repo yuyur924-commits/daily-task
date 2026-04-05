@@ -955,7 +955,7 @@
 
       <!-- 미완료/이월 현황 -->
       <div class="section-card" style="margin-bottom:16px;">
-        <div class="section-head"><h3>⚠️ 미완료 · 이월 현황</h3></div>
+        <div class="section-head"><h3>⚠️ 미완료 · 이월 현황 (현재 시점 기준)</h3></div>
         <div id="admin-undone-list" style="padding:14px 18px;"></div>
       </div>
 
@@ -3915,14 +3915,16 @@ function getCategoryMappedParts(category){
 }
 
 function getScopedPartsForUser(user){
-  if(isSuperAdmin()) return [];
+  if(isSuperAdmin()){
+    if(adminSuperPartFilter) return [adminSuperPartFilter];
+    return [];
+  }
   if(adminAssignedPart) return [adminAssignedPart];
   if(adminPartFilter) return [adminPartFilter];
   return parsePartValues(user?.part);
 }
 
 function taskMatchesAdminScope(task, user){
-  if(isSuperAdmin()) return true;
   const scopedParts=getScopedPartsForUser(user);
   if(!scopedParts.length) return true;
   const mappedParts=getCategoryMappedParts(task?.category||'');
@@ -3952,21 +3954,30 @@ function renderAdminTeamFilter(){
       // 전체 권한 관리자 → 파트 필터 표시
       wrap.parentElement.style.display='flex';
       wrap.innerHTML=
-        `<button class="ptab ${adminPartFilter===''?'active':''}" onclick="setAdminPartFilter('',this)">전체</button>`+
-        PARTS.map(p=>`<button class="ptab ${adminPartFilter===p?'active':''}" onclick="setAdminPartFilter('${esc(p)}',this)">${esc(p)}</button>`).join('');
+        `<button class="ptab part-btn ${adminPartFilter===''?'active':''}" onclick="setAdminPartFilter('',this)">전체</button>`+
+        PARTS.map(p=>`<button class="ptab part-btn ${adminPartFilter===p?'active':''}" onclick="setAdminPartFilter('${esc(p)}',this)">${esc(p)}</button>`).join('');
     }
     return;
   }
-  // 슈퍼 관리자: 팀 필터 버튼 표시
+  // 슈퍼 관리자: 팀 + 파트 필터 표시
   wrap.parentElement.style.display='flex';
-  wrap.innerHTML=`<button class="ptab ${adminTeamFilter===''?'active':''}" onclick="setAdminTeamFilter('',this)">전체</button>`+
-    teamsList.map(t=>`<button class="ptab ${adminTeamFilter===t?'active':''}" onclick="setAdminTeamFilter('${esc(t)}',this)">${esc(t)}</button>`).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--text3);font-weight:600;">팀</span>
+      <button class="ptab team-btn ${adminTeamFilter===''?'active':''}" onclick="setAdminTeamFilter('',this)">전체</button>
+      ${teamsList.map(t=>`<button class="ptab team-btn ${adminTeamFilter===t?'active':''}" onclick="setAdminTeamFilter('${esc(t)}',this)">${esc(t)}</button>`).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--text3);font-weight:600;">파트</span>
+      <button class="ptab super-part-btn ${adminSuperPartFilter===''?'active':''}" onclick="setAdminSuperPartFilter('',this)">전체</button>
+      ${PARTS.map(p=>`<button class="ptab super-part-btn ${adminSuperPartFilter===p?'active':''}" onclick="setAdminSuperPartFilter('${esc(p)}',this)">${esc(p)}</button>`).join('')}
+    </div>`;
 }
 
 function setAdminTeamFilter(part,btn){
   if(!isSuperAdmin())return;
   adminTeamFilter=part;
-  document.querySelectorAll('#admin-team-filter-wrap .ptab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#admin-team-filter-wrap .team-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   // 팀 변경 시 업무 목록 초기화
   const sel=document.getElementById('admin-user-select');
@@ -3977,9 +3988,22 @@ function setAdminTeamFilter(part,btn){
   renderAdminDashboard(from,to);
 }
 
+function setAdminSuperPartFilter(part,btn){
+  if(!isSuperAdmin())return;
+  adminSuperPartFilter=part;
+  document.querySelectorAll('#admin-team-filter-wrap .super-part-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const sel=document.getElementById('admin-user-select');
+  if(sel)sel.value='';
+  const taskEl=document.getElementById('admin-user-tasks');
+  if(taskEl)taskEl.innerHTML='';
+  const {from,to}=getAdminDateRange();
+  renderAdminDashboard(from,to);
+}
+
 function setAdminPartFilter(part,btn){
   adminPartFilter=part;
-  document.querySelectorAll('#admin-team-filter-wrap .ptab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#admin-team-filter-wrap .part-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   // 파트 변경 시 업무 목록 초기화
   const sel=document.getElementById('admin-user-select');
@@ -3996,9 +4020,12 @@ function getFilteredUsers(){
     if(!adminPartFilter)return adminAllData;
     return adminAllData.filter(u=>hasPart(u.part,adminPartFilter));
   }
-  // 슈퍼 관리자: 팀 필터 적용
-  if(!adminTeamFilter)return adminAllData;
-  return adminAllData.filter(u=>u.team===adminTeamFilter);
+  // 슈퍼 관리자: 팀 + 파트 필터 동시 적용
+  return adminAllData.filter(u=>{
+    if(adminTeamFilter && u.team!==adminTeamFilter) return false;
+    if(adminSuperPartFilter && !hasPart(u.part,adminSuperPartFilter)) return false;
+    return true;
+  });
 }
 
 function toggleAdminRates(){
@@ -4042,13 +4069,15 @@ async function renderAdminDashboard(from,to){
   }));
   const avgRate=totalTasks?Math.round(totalDone/totalTasks*100):0;
   const filterLabel=isSuperAdmin()
-    ? (adminTeamFilter?` (${adminTeamFilter})`:'')
+    ? (((adminTeamFilter||adminSuperPartFilter)
+        ? ` (${[adminTeamFilter,adminSuperPartFilter].filter(Boolean).join(' · ')})`
+        : ''))
     : ((adminAssignedPart||adminPartFilter)?` (${adminAssignedPart||adminPartFilter})`:'' );
 
   document.getElementById('admin-summary-cards').innerHTML=`
     <div class="sum-card"><div class="sum-lbl">사용자${filterLabel}</div><div class="sum-val">${totalUsers}명</div><div class="sum-sub">활성 ${activeUsers}명</div></div>
     <div class="sum-card"><div class="sum-lbl">평균 달성률</div><div class="sum-val">${avgRate}%</div><div class="sum-sub">${from} ~ ${to}</div></div>
-    <div class="sum-card"><div class="sum-lbl">미완료 업무</div><div class="sum-val" style="color:var(--red);">${totalUndone}</div><div class="sum-sub">전체 ${totalTasks}개 중</div></div>
+    <div class="sum-card"><div class="sum-lbl">미완료 업무 수 (예정업무 포함)</div><div class="sum-val" style="color:var(--red);">${totalUndone}</div><div class="sum-sub">전체 ${totalTasks}개 중</div></div>
     <div class="sum-card"><div class="sum-lbl">이월 횟수</div><div class="sum-val" style="color:var(--blue);">${totalCarry}</div><div class="sum-sub">기간 내 합계</div></div>
   `;
 
