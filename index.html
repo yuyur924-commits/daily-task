@@ -358,11 +358,9 @@
 
   /* ── 사이드바 레이아웃 ── */
   .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
-  .sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
-  .sb-logo-icon{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#3E67D6 0%, #6D4DFF 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 7px 16px rgba(62,103,214,.16), 0 2px 6px rgba(109,77,255,.10);flex-shrink:0;}
-  .sb-logo-icon svg{width:20px;height:20px;display:block;}
-  .sb-logo-text{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;color:#fff;line-height:1.1;}
-  .sb-logo-sub{font-size:10px;color:var(--sidebar-text2);letter-spacing:.3px;margin-top:3px;}
+  .sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;flex-shrink:0;}
+  .sb-logo-text{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;color:#fff;line-height:1.1;}
+  .sb-logo-sub{font-size:11px;color:var(--sidebar-text2);letter-spacing:.3px;margin-top:5px;}
   .sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
   .sb-sec{font-size:10px;font-weight:600;color:var(--sidebar-text2);text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px;}
   .sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:7px;color:var(--sidebar-text);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;margin-bottom:2px;font-family:'Noto Sans KR',sans-serif;}
@@ -1669,8 +1667,46 @@ function renderStatCards(){
   document.getElementById('s-rate').textContent=rate+'%';
   document.getElementById('s-bar').style.width=rate+'%';
   document.getElementById('s-sub').textContent=`${done} / ${total} 완료`;
-  document.getElementById('s-week').textContent='—';
-  document.getElementById('s-month').textContent='—';
+  renderAverageCards();
+}
+
+async function renderAverageCards(){
+  const weekEl=document.getElementById('s-week');
+  const monthEl=document.getElementById('s-month');
+  if(!weekEl||!monthEl)return;
+
+  weekEl.textContent='—';
+  monthEl.textContent='—';
+
+  const list=await fetchList();
+  const summaryMap={};
+  (list||[]).forEach(item=>{
+    summaryMap[item.date]=item.summary||{agenda:'',total:0,done:0};
+  });
+
+  const currentTasks=curDay.tasks||[];
+  summaryMap[curDate]={
+    agenda:curDay.agenda||'',
+    total:currentTasks.length,
+    done:currentTasks.filter(t=>t.done).length
+  };
+
+  function avgForDays(n){
+    const dates=[];
+    for(let i=n-1;i>=0;i--){
+      dates.push(addDays(todayStr(),-i));
+    }
+    const items=dates.map(date=>summaryMap[date]).filter(s=>s&&s.total>0);
+    if(!items.length)return null;
+    const avg=Math.round(items.reduce((acc,s)=>acc+Math.round((s.done/s.total)*100),0)/items.length);
+    return avg;
+  }
+
+  const weekAvg=avgForDays(7);
+  const monthAvg=avgForDays(30);
+
+  weekEl.textContent=weekAvg===null?'—':weekAvg+'%';
+  monthEl.textContent=monthAvg===null?'—':monthAvg+'%';
 }
 
 /* ═══════════════════════════════════════
@@ -4330,4 +4366,3 @@ window.addEventListener('popstate', async (e)=>{
 </script>
 </body>
 </html>
-
