@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일일 업무 관리</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23243B6B'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='4' y='4' width='56' height='56' rx='16' fill='url(%23g)'/%3E%3Cpath d='M20 18h22a3 3 0 0 1 3 3v20a3 3 0 0 1-3 3H23a3 3 0 0 1-3-3V18Z' fill='%23fff' fill-opacity='0.97'/%3E%3Cpath d='M34 18l8 8h-5a2 2 0 0 1-2-2V18Z' fill='%23D9CCFF'/%3E%3Cpath d='M27 30h11' stroke='%23314D86' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M27 36h9' stroke='%23314D86' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M27 42h12' stroke='%237A5AF8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"><text y='.9em' font-size='90'>📑</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23243B6B'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='4' y='4' width='56' height='56' rx='16' fill='url(%23g)'/%3E%3Cpath d='M20 18h22a3 3 0 0 1 3 3v20a3 3 0 0 1-3 3H23a3 3 0 0 1-3-3V18Z' fill='%23fff' fill-opacity='0.97'/%3E%3Cpath d='M34 18l8 8h-5a2 2 0 0 1-2-2V18Z' fill='%23D9CCFF'/%3E%3Cpath d='M27 30h11' stroke='%23314D86' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M27 36h9' stroke='%23314D86' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M27 42h12' stroke='%237A5AF8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -668,6 +668,95 @@
     }
   }
 
+
+
+  /* ── sidebar polish patch ── */
+  .sb-item{
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .sb-item:hover{
+    box-shadow:none !important;
+  }
+  .sb-item:focus,
+  .sb-item:focus-visible{
+    outline:none !important;
+    box-shadow:none !important;
+  }
+  .sb-item.active{
+    border:none !important;
+    box-shadow:0 10px 22px rgba(36,59,107,.24) !important;
+  }
+  .sb-item.adm{
+    box-shadow:none !important;
+  }
+
+  .sb-btns{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px !important;
+  }
+  .sb-btn{
+    min-width:0;
+    height:36px !important;
+    padding:0 6px !important;
+    border-radius:10px !important;
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    white-space:nowrap;
+    word-break:keep-all;
+    text-align:center;
+    font-size:10.5px !important;
+    font-weight:600;
+    outline:none !important;
+    line-height:1;
+  }
+  .sb-btn:focus,
+  .sb-btn:focus-visible{
+    outline:none !important;
+    box-shadow:none !important;
+  }
+  .sb-btn-ic{
+    width:13px;
+    height:13px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .sb-btn-ic svg{
+    width:13px;
+    height:13px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .sb-btn-txt{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  @media(max-width:768px){
+    .sb-btn{
+      font-size:10px !important;
+      gap:3px;
+      padding:0 4px !important;
+    }
+    .sb-btn-ic, .sb-btn-ic svg{
+      width:12px;
+      height:12px;
+    }
+  }
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
@@ -730,6 +819,25 @@
     <symbol id="ic-admin" viewBox="0 0 24 24">
       <path d="M12 3l2.1 4.2 4.6.7-3.3 3.2.8 4.5-4.2-2.2-4.2 2.2.8-4.5L5.3 7.9l4.6-.7L12 3z"></path>
       <path d="M8 19.5h8"></path>
+    </symbol>
+
+    <symbol id="ic-save" viewBox="0 0 24 24">
+      <path d="M5 4.5h11l3 3V19a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 4 19V6a1.5 1.5 0 0 1 1-1.5z"></path>
+      <path d="M8 4.5v5h7v-5"></path>
+      <path d="M8 15.5h8"></path>
+    </symbol>
+
+    <symbol id="ic-report" viewBox="0 0 24 24">
+      <path d="M7 4.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V6A1.5 1.5 0 0 1 7 4.5z"></path>
+      <path d="M14 4.5v4h4"></path>
+      <path d="M9 12.5h6"></path>
+      <path d="M9 16h6"></path>
+    </symbol>
+
+    <symbol id="ic-logout" viewBox="0 0 24 24">
+      <path d="M10 4.5H7A2.5 2.5 0 0 0 4.5 7v10A2.5 2.5 0 0 0 7 19.5h3"></path>
+      <path d="M14 8l4 4-4 4"></path>
+      <path d="M9 12h9"></path>
     </symbol>
   </defs>
 </svg>
@@ -816,9 +924,9 @@
         <div class="sb-email-txt" id="user-email"></div>
       </div>
       <div class="sb-btns">
-        <button class="sb-btn sv" id="manual-save-btn" onclick="manualSave()">💾 저장</button>
-        <button class="sb-btn" onclick="openDownloadModal()">📥 주간보고</button>
-        <button class="sb-btn" onclick="signOut()">로그아웃</button>
+        <button class="sb-btn sv" id="manual-save-btn" onclick="manualSave()"><span class="sb-btn-ic"><svg viewBox="0 0 24 24"><use href="#ic-save"></use></svg></span><span class="sb-btn-txt">저장</span></button>
+        <button class="sb-btn" onclick="openDownloadModal()"><span class="sb-btn-ic"><svg viewBox="0 0 24 24"><use href="#ic-report"></use></svg></span><span class="sb-btn-txt">주간보고</span></button>
+        <button class="sb-btn" onclick="signOut()"><span class="sb-btn-ic"><svg viewBox="0 0 24 24"><use href="#ic-logout"></use></svg></span><span class="sb-btn-txt">로그아웃</span></button>
       </div>
     </div>
   </aside>
@@ -1505,6 +1613,7 @@ async function signOut(){
   recurringCache=null;
   curDay={tasks:[],agenda:'',memo:''};
   localStorage.removeItem('sb_session');
+  history.replaceState(null,'',location.pathname+location.search);
   showLoginScreen();
 }
 
@@ -1571,6 +1680,8 @@ function showMainApp(){
   // 관리자 탭 항상 먼저 숨김 — checkAdmin() 후 필요시 표시
   const adminBtn=document.getElementById('admin-nav-btn');
   if(adminBtn)adminBtn.style.display='none';
+  const lastView=(sessionStorage.getItem('lastView')||location.hash.replace('#','')||'today');
+  updateAppHistory(lastView,'replace');
   // 계정이 바뀌었으면 캐시 초기화
   const uid=currentSession?.user?.id||'';
   if(_lastUserId && _lastUserId!==uid){
@@ -4588,21 +4699,31 @@ async function removeAdmin(id,email){
 /* ═══════════════════════════════════════
    VIEW SWITCHING
 ═══════════════════════════════════════ */
-function showView(v){
-  const _T={today:'오늘의 업무',calendar:'캘린더',history:'기록',stats:'통계',recurring:'반복업무',admin:'관리자'};const _tb=document.getElementById('tb-title');if(_tb&&_T[v])_tb.textContent=_T[v];
+let _isHandlingPopState=false;
+function updateAppHistory(view, mode='push'){
+  const url=new URL(location.href);
+  url.hash=view ? ('#'+view) : '';
+  const state={app:true,view:view||'today'};
+  if(mode==='replace') history.replaceState(state,'',url);
+  else history.pushState(state,'',url);
+}
+
+function showView(v,opts={}){
+  const {skipHistory=false, replaceHistory=false}=opts||{};
+  const _T={today:'오늘의 업무',calendar:'캘린더',history:'기록',stats:'통계',recurring:'반복업무',admin:'관리자'};
+  const _tb=document.getElementById('tb-title');if(_tb&&_T[v])_tb.textContent=_T[v];
   console.log('showView:', v);
-  // 마지막 탭 저장 (새로고침 시 복원)
   try{sessionStorage.setItem('lastView',v);}catch{}
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   const idx={today:0,calendar:1,history:2,stats:3,recurring:4,admin:5}[v];
-  document.querySelectorAll('.sb-item')[idx].classList.add('active');
+  const items=document.querySelectorAll('.sb-item');
+  if(items[idx]) items[idx].classList.add('active');
   if(v==='calendar')renderCalendar();
   if(v==='history'){histFullData=[];renderHistory();}
   if(v==='recurring'){
     renderRecurring();
-    // 구분 목록 — 관리자만 표시
     const catSection=document.getElementById('cat-section');
     if(catSection)catSection.style.display=isAdmin?'block':'none';
     if(isAdmin){
@@ -4615,14 +4736,34 @@ function showView(v){
   }
   if(v==='admin')loadAdminData();
   if(v==='stats'){
-    // 모든 서브탭 중 overview만 표시
     ['overview','priority','category','carry','weekday','minutes'].forEach(t=>{
       const el=document.getElementById('stats-tab-'+t);
       if(el)el.style.display=t===curStatsTab?'block':'none';
     });
     renderStats();
   }
+  if(!skipHistory && !_isHandlingPopState){
+    updateAppHistory(v, replaceHistory?'replace':'push');
+  }
 }
+
+window.addEventListener('popstate',(e)=>{
+  const target=(e.state&&e.state.app&&e.state.view) || location.hash.replace('#','') || (sessionStorage.getItem('lastView')||'today');
+  if(!document.getElementById('main-app') || document.getElementById('main-app').style.display==='none') return;
+  _isHandlingPopState=true;
+  try{ showView(target,{skipHistory:true}); } finally { _isHandlingPopState=false; }
+});
+
+window.addEventListener('keydown',(e)=>{
+  if(e.key!=='Backspace') return;
+  const t=e.target;
+  const editable=t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.isContentEditable);
+  if(editable) return;
+  if(document.getElementById('main-app') && document.getElementById('main-app').style.display!=='none'){
+    e.preventDefault();
+    history.back();
+  }
+});
 
 /* ═══════════════════════════════════════
    UTILS
