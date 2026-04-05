@@ -4152,13 +4152,27 @@ function renderAdminDashboard(from,to){
   });
   sel.innerHTML=selHtml;
 
-  // 구분 필터 드롭다운 - 전체 데이터에서 구분 수집
+  // 구분 필터 드롭다운 - 현재 사용자 파트 + 실제 작성된 업무 구분을 함께 반영
+  await loadAllCategories();
   const allCats=new Set();
+
+  // 현재 필터된 사용자에게 연결된 파트 기준 구분 수집
+  const visibleParts=new Set(['공통']);
+  filtered.forEach(u=>{
+    const parts=parsePartValues(u.part);
+    if(parts.length) parts.forEach(p=>visibleParts.add(p));
+  });
+  (allCategoriesData||[]).forEach(c=>{
+    if(c?.name && visibleParts.has(c.part||'공통')) allCats.add(c.name);
+  });
+
+  // 실제 작성된 업무 구분도 함께 반영
   filtered.forEach(u=>u.days.forEach(d=>(d.data?.tasks||[]).forEach(t=>{if(t.category)allCats.add(t.category);})));
+
   const catSel=document.getElementById('admin-cat-filter');
   if(catSel){
     const prevCat=catSel.value;
-    catSel.innerHTML='<option value="">전체 구분</option>'+[...allCats].sort().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    catSel.innerHTML='<option value="">전체 구분</option>'+[...allCats].sort((a,b)=>a.localeCompare(b,'ko')).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
     if(prevCat&&allCats.has(prevCat))catSel.value=prevCat;
   }
 
@@ -4283,6 +4297,9 @@ async function saveUserProfile(userId,email){
       if(u){u.name=name;u.team=team;u.part=part;}
       userProfiles[userId]={name,team,part};
       renderAdminTeamFilter();
+      if(document.getElementById('view-admin')?.classList.contains('active')){
+        await loadAdminData();
+      }
       toast(`✅ ${name||email} 저장됐어요`);
     } else {
       const err=await res.text().catch(()=>'');
