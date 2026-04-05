@@ -1042,7 +1042,9 @@
     <div class="modal-hd"><h3 id="recurring-modal-title">반복업무 추가</h3><button class="modal-x" onclick="closeRecurringModal()">✕</button></div>
     <div class="modal-body">
       <div class="m-lbl">구분</div>
-      <input class="m-input" id="r-category" placeholder="예: 홍카페 (선택)">
+      <select class="m-input" id="r-category" style="cursor:pointer;">
+        <option value="">구분 선택</option>
+      </select>
       <div class="m-lbl">업무 내용</div>
       <input class="m-input" id="r-name" placeholder="반복 업무 내용을 입력하세요">
       <div class="m-lbl">우선순위</div>
@@ -3084,14 +3086,16 @@ async function renderRecurring(){
   list.forEach((r,i)=>{
     const card=document.createElement('div');
     card.className='rec-card';
+    card.title='더블클릭하면 수정할 수 있어요';
     card.innerHTML=`
       <span class="rec-badge">${getRecLabel(r)}</span>
       <div>
         <div class="rec-name">${r.category?`[${esc(r.category)}] `:''}${esc(r.name)}</div>
         <div class="rec-cat">${getPriIcon(r.priority)} ${getRecDesc(r)}</div>
       </div>
-      <button class="rec-del" onclick="deleteRecurring(${i})" title="삭제">×</button>
+      <button class="rec-del" onclick="event.stopPropagation(); deleteRecurring(${i})" title="삭제">×</button>
     `;
+    card.addEventListener('dblclick',()=>openRecurringModal(i));
     el.appendChild(card);
   });
 }
@@ -3115,23 +3119,32 @@ function getRecDesc(r){
 }
 function getPriIcon(p){return['','🟢','🟡','🟠','🔴'][p]||'🟡';}
 
+function renderRecurringCategoryOptions(selected=''){
+  const sel=document.getElementById('r-category');
+  if(!sel) return;
+  const html=getCategoryOptionsHtml(selected||'').replace('<option value="">구분</option>','<option value="">구분 선택</option>');
+  sel.innerHTML=html;
+  if(selected) sel.value=selected;
+}
+
 /* ── 모달 열기/닫기 ── */
 let editRecurringIdx=null;
 
-function openRecurringModal(idx){
+async function openRecurringModal(idx){
   editRecurringIdx=idx!==undefined?idx:null;
   const title=idx!==undefined?'반복업무 수정':'반복업무 추가';
   document.getElementById('recurring-modal-title').textContent=title;
+  const list=await loadRecurring();
   if(idx!==undefined){
-    const r=loadRecurring()[idx];
-    document.getElementById('r-category').value=r.category||'';
+    const r=list[idx]||{};
+    renderRecurringCategoryOptions(r.category||'');
     document.getElementById('r-name').value=r.name||'';
     document.getElementById('r-priority').value=r.priority||3;
     document.getElementById('r-type').value=r.type||'weekly';
     document.getElementById('r-monthday').value=r.monthday||'';
     document.querySelectorAll('.r-dow').forEach(cb=>{cb.checked=(r.dows||[]).includes(parseInt(cb.value));});
   } else {
-    document.getElementById('r-category').value='';
+    renderRecurringCategoryOptions('');
     document.getElementById('r-name').value='';
     document.getElementById('r-priority').value=3;
     document.getElementById('r-type').value='weekly';
@@ -3155,7 +3168,7 @@ async function saveRecurring(){
   if(!name){toast('업무 내용을 입력해 주세요');return;}
   const type=document.getElementById('r-type').value;
   const rec={
-    category:document.getElementById('r-category').value.trim(),
+    category:(document.getElementById('r-category').value||'').trim(),
     name,
     priority:parseInt(document.getElementById('r-priority').value),
     type,
