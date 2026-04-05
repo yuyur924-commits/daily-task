@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일일 업무 관리</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233E67D6'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='44' height='44' rx='11' fill='url(%23g)'/%3E%3Cpath d='M24 18h11l7 7v21H24z' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cpath d='M35 18v7h7' fill='none' stroke='%23D9CCFF' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cpath d='M28 31h10' stroke='%23fff' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M28 39h10' stroke='%23fff' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M28 47h7' stroke='%23D9CCFF' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233E67D6'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='44' height='44' rx='12' fill='url(%23g)'/%3E%3Cpath d='M24 18h11l7 7v21H24z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M35 18v7h7' fill='none' stroke='%23D9CCFF' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M28 31h10' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M28 39h10' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M28 47h7' stroke='%23D9CCFF' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"><text y='.9em' font-size='90'>📑</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -366,8 +366,7 @@
   .sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:7px;color:var(--sidebar-text);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;margin-bottom:2px;font-family:'Noto Sans KR',sans-serif;}
   .sb-item:hover{background:rgba(255,255,255,.06);color:#fff;}
   .sb-item.active{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(59,95,160,.35);}
-  .sb-ic{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.88;}
-  .sb-ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .sb-ic{font-size:15px;width:20px;text-align:center;flex-shrink:0;opacity:.75;}
   .sb-item.active .sb-ic{opacity:1;}
   .sb-item.adm{color:#EF9FA3;background:rgba(192,68,74,.1);margin-top:6px;}
   .sb-item.adm:hover{background:rgba(192,68,74,.2);}
@@ -377,12 +376,12 @@
   .sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;}
   .sb-email-txt{font-size:11px;color:var(--sidebar-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
   .sb-btns{display:flex;flex-direction:column;gap:6px;}
-  .sb-btn{width:100%;min-height:28px;padding:0 10px;border-radius:9px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-text2);font-size:11px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:flex-start;gap:7px;white-space:nowrap;}
-  .sb-btn svg{width:13px;height:13px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .sb-btn{width:100%;min-height:30px;padding:0 10px;border-radius:9px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-text2);font-size:11px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:flex-start;gap:7px;white-space:nowrap;}
   .sb-btn:hover{background:rgba(255,255,255,.05);color:#fff;}
-  .sb-btn.sv{background:rgba(62,103,214,.18);border-color:rgba(62,103,214,.28);color:#DCE7FF;}
-  .sb-btn.sv:hover{background:rgba(62,103,214,.24);border-color:rgba(62,103,214,.34);}
-  .sb-btn.sv.unsaved{background:rgba(192,68,74,.22);border-color:rgba(192,68,74,.32);color:#FFD7D9;}
+  .sb-btn svg{width:13px;height:13px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .sb-btn.sv{background:rgba(62,103,214,.16);border-color:rgba(62,103,214,.26);color:#DCE7FF;}
+  .sb-btn.sv:hover{background:rgba(62,103,214,.22);border-color:rgba(62,103,214,.32);}
+  .sb-btn.sv.unsaved{background:var(--red);border-color:var(--red);color:white;}
   /* ── 메인 영역 ── */
   .main-wrap{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0;}
   .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:50px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(28,35,51,.05);}
@@ -425,15 +424,7 @@
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--sidebar-bg2);flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:999;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow2);width:100%;max-width:400px;padding:44px 40px;">
     <div style="text-align:center;margin-bottom:28px;">
-      <div style="width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#3E67D6 0%, #6D4DFF 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 18px rgba(62,103,214,.18), 0 3px 8px rgba(109,77,255,.12);">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" style="width:28px;height:28px;display:block;">
-          <path d="M24 18h14l7 7v21H24z" fill="#FFFFFF" fill-opacity="0.97"/>
-          <path d="M38 18v7h7" fill="#D9CCFF"/>
-          <path d="M29 31h10" stroke="#314D86" stroke-width="2.8" stroke-linecap="round"/>
-          <path d="M29 36h8" stroke="#314D86" stroke-width="2.8" stroke-linecap="round"/>
-          <path d="M29 41h11" stroke="#D9CCFF" stroke-width="2.8" stroke-linecap="round"/>
-        </svg>
-      </div>
+      <div style="width:54px;height:54px;border-radius:13px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;box-shadow:0 6px 20px rgba(59,95,160,.35);">📋</div>
       <div style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:var(--text);">Daily</div>
       <div style="font-size:12px;color:var(--text3);margin-top:4px;">일일 업무 관리</div>
     </div>
@@ -469,25 +460,16 @@
 <div id="main-app" style="display:none;width:100%;">
   <aside class="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-icon" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M24 18h14l7 7v21H24z" fill="#FFFFFF" fill-opacity="0.97"/>
-          <path d="M38 18v7h7" fill="#D9CCFF"/>
-          <path d="M29 31h10" stroke="#314D86" stroke-width="2.8" stroke-linecap="round"/>
-          <path d="M29 36h8" stroke="#314D86" stroke-width="2.8" stroke-linecap="round"/>
-          <path d="M29 41h11" stroke="#D9CCFF" stroke-width="2.8" stroke-linecap="round"/>
-        </svg>
-      </div>
       <div><div class="sb-logo-text">Daily</div><div class="sb-logo-sub">업무관리</div></div>
     </div>
     <nav class="sb-nav">
       <div class="sb-sec">메뉴</div>
-      <button class="sb-item active" onclick="showView('today')"><span class="sb-ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"></rect><path d="M8 3.5v3"></path><path d="M16 3.5v3"></path><path d="M3.5 9.5h17"></path><path d="M8 14l2.2 2.2L16 11"></path></svg></span>오늘</button>
-      <button class="sb-item" onclick="showView('calendar')"><span class="sb-ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"></rect><path d="M8 3.5v3"></path><path d="M16 3.5v3"></path><path d="M3.5 9.5h17"></path><path d="M8 13h3"></path><path d="M13 13h3"></path><path d="M8 17h3"></path></svg></span>캘린더</button>
-      <button class="sb-item" onclick="showView('history')"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6"></path><path d="M4 4v5h5"></path><path d="M12 8v5l3 2"></path></svg></span>기록</button>
-      <button class="sb-item" onclick="showView('stats')"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M4 19.5h16"></path><rect x="6" y="11" width="3" height="6.5" rx="1"></rect><rect x="11" y="8" width="3" height="9.5" rx="1"></rect><rect x="16" y="5" width="3" height="12.5" rx="1"></rect></svg></span>통계</button>
-      <button class="sb-item" onclick="showView('recurring')"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M17 2.5l3 3-3 3"></path><path d="M20 5.5H9a4 4 0 0 0-4 4v1"></path><path d="M7 21.5l-3-3 3-3"></path><path d="M4 18.5h11a4 4 0 0 0 4-4v-1"></path></svg></span>반복업무</button>
-      <button class="sb-item adm" id="admin-nav-btn" onclick="showView('admin')" style="display:none;"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M12 3l2.1 4.2 4.6.7-3.3 3.2.8 4.5-4.2-2.2-4.2 2.2.8-4.5L5.3 7.9l4.6-.7L12 3z"></path><path d="M8 19.5h8"></path></svg></span>관리자</button>
+      <button class="sb-item active" onclick="showView('today')"><span class="sb-ic">📅</span>오늘</button>
+      <button class="sb-item" onclick="showView('calendar')"><span class="sb-ic">🗓</span>캘린더</button>
+      <button class="sb-item" onclick="showView('history')"><span class="sb-ic">📂</span>기록</button>
+      <button class="sb-item" onclick="showView('stats')"><span class="sb-ic">📊</span>통계</button>
+      <button class="sb-item" onclick="showView('recurring')"><span class="sb-ic">🔁</span>반복업무</button>
+      <button class="sb-item adm" id="admin-nav-btn" onclick="showView('admin')" style="display:none;"><span class="sb-ic">👑</span>관리자</button>
     </nav>
     <div class="sb-foot">
       <div class="sb-user">
@@ -523,8 +505,8 @@
       </div>
       <div class="stats-row">
         <div class="stat-card"><div class="lbl">오늘 달성률</div><div class="val" id="s-rate">0%</div><div class="prog-wrap"><div class="prog-bar" id="s-bar" style="width:0%"></div></div><div class="sub" id="s-sub">0 / 0 완료</div></div>
-        <div class="stat-card"><div class="lbl">이번 주 평균</div><div class="val" id="s-week">—</div><div class="sub">주간 달성률</div></div>
-        <div class="stat-card"><div class="lbl">이번 달 평균</div><div class="val" id="s-month">—</div><div class="sub">월간 달성률</div></div>
+        <div class="stat-card"><div class="lbl">이번 주 평균</div><div class="val" id="s-week">—</div><div class="sub">금~목 주간 평균</div></div>
+        <div class="stat-card"><div class="lbl">이번 달 평균</div><div class="val" id="s-month">—</div><div class="sub">당월 누적 평균</div></div>
       </div>
       <div class="section-card">
         <div class="section-head"><h3>📌 주요 일정</h3></div>
@@ -1124,9 +1106,11 @@ async function signInWithEmail(){
     currentSession={...data,user};
     localStorage.setItem('sb_session',JSON.stringify(currentSession));
     showMainApp();
+    try{sessionStorage.setItem('lastView','today');}catch{}
+    history.replaceState({view:'today'}, '', location.pathname+location.search+'#today');
     isAdmin=await checkAdmin();
     if(isAdmin){const adminBtn=document.getElementById('admin-nav-btn');if(adminBtn)adminBtn.style.display='flex';}
-    await loadDay(curDate);await loadCategories();checkAndCarryOver();recurringCache=null;injectRecurringTasks();
+    await loadDay(curDate);showView('today',{push:false});await loadCategories();checkAndCarryOver();recurringCache=null;injectRecurringTasks();
   }catch(e){errEl.textContent='오류가 발생했어요: '+e.message;errEl.style.display='block';}
 }
 
@@ -1152,13 +1136,9 @@ async function signUpWithEmail(){
       const userRes=await fetch(`${SB_URL}/auth/v1/user`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+data.access_token}});
       const user=await userRes.json();
       currentSession={...data,user};localStorage.setItem('sb_session',JSON.stringify(currentSession));
-      showMainApp();isAdmin=await checkAdmin();
+      showMainApp();try{sessionStorage.setItem('lastView','today');}catch{} history.replaceState({view:'today'}, '', location.pathname+location.search+'#today');isAdmin=await checkAdmin();
       if(isAdmin){const adminBtn=document.getElementById('admin-nav-btn');if(adminBtn)adminBtn.style.display='flex';}
-      curDate=todayStr();
-      await loadDay(curDate);
-      showView('today', false);
-      try{history.replaceState({appView:'today'},'',location.pathname+location.search+'#today');}catch{}
-      await loadCategories();checkAndCarryOver();recurringCache=null;injectRecurringTasks();
+      await loadDay(curDate);showView('today',{push:false});await loadCategories();checkAndCarryOver();recurringCache=null;injectRecurringTasks();
     } else {
       errEl.style.color='var(--green)';
       errEl.textContent='✅ 가입 완료! 이메일 확인 후 로그인해 주세요.';errEl.style.display='block';
@@ -1510,27 +1490,28 @@ function updateUnsavedIndicator(){
 ═══════════════════════════════════════ */
 async function init(){
   showLoading('로그인 확인 중...');
-  getSession().then(async session=>{
-    hideLoading();
-    if(!session){
-      showLoginScreen();
-      return;
-    }
-    showMainApp();
-    isAdmin=await checkAdmin();
-    if(isAdmin){
-      const adminBtn=document.getElementById('admin-nav-btn');
-      if(adminBtn)adminBtn.style.display='inline-flex';
-    }
-    curDate=todayStr();
-    await loadDay(curDate);
-    showView('today', false);
-    try{history.replaceState({appView:'today'},'',location.pathname+location.search+'#today');}catch{}
-    await loadCategories();
-    checkAndCarryOver();
-    recurringCache=null;
-    injectRecurringTasks();
-  });
+  const session=await getSession();
+  hideLoading();
+  if(!session){
+    showLoginScreen();
+    return;
+  }
+  showMainApp();
+  // 관리자 여부 확인
+  isAdmin=await checkAdmin();
+  if(isAdmin){
+    const adminBtn=document.getElementById('admin-nav-btn');
+    if(adminBtn)adminBtn.style.display='inline-flex';
+  }
+  // 마지막 탭 복원
+  try{sessionStorage.setItem('lastView','today');}catch{}
+  await loadDay(curDate);
+  showView('today', {push:false});
+
+  await loadCategories();
+  checkAndCarryOver();
+  recurringCache=null;
+  injectRecurringTasks();
 }
 
 async function loadDay(date){
@@ -1660,53 +1641,53 @@ function priBlocks(p){const icons=['','🟢','🟡','🟠','🔴'];return `<span
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function agendaDisp(s){return esc(String(s||'').replace(/\n+/g,' / ').trim());}
 
-function renderStatCards(){
+function getReportWeekRange(baseDateStr){
+  const [y,m,d]=baseDateStr.split('-').map(Number);
+  const base=new Date(y,m-1,d);
+  const day=base.getDay();
+  const diffToFriday = day >= 5 ? day - 5 : day + 2;
+  const start=new Date(base);
+  start.setDate(base.getDate()-diffToFriday);
+  start.setHours(0,0,0,0);
+  const end=new Date(start);
+  end.setDate(start.getDate()+6);
+  end.setHours(23,59,59,999);
+  return {start,end};
+}
+function fmtDateObj(dt){return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;}
+async function calcAverageForRange(fromStr, toStr){
+  const list=await fetchList();
+  const map=new Map((list||[]).map(v=>[v.date,v.summary]));
+  let cursor=fromStr, sum=0, count=0, totalDone=0, totalTasks=0;
+  while(cursor<=toStr){
+    const s=map.get(cursor);
+    if(s && s.total>0){
+      sum += s.done/s.total;
+      count++;
+      totalDone += s.done;
+      totalTasks += s.total;
+    }
+    cursor=addDays(cursor,1);
+  }
+  return {rate: count?Math.round(sum/count*100):0, days:count, done:totalDone, total:totalTasks};
+}
+async function renderStatCards(){
   const tasks=curDay.tasks||[];
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const rate=total?Math.round(done/total*100):0;
   document.getElementById('s-rate').textContent=rate+'%';
   document.getElementById('s-bar').style.width=rate+'%';
   document.getElementById('s-sub').textContent=`${done} / ${total} 완료`;
-  renderAverageCards();
-}
 
-async function renderAverageCards(){
-  const weekEl=document.getElementById('s-week');
-  const monthEl=document.getElementById('s-month');
-  if(!weekEl||!monthEl)return;
+  const weekRange=getReportWeekRange(curDate);
+  const weekAvg=await calcAverageForRange(fmtDateObj(weekRange.start), fmtDateObj(weekRange.end));
+  document.getElementById('s-week').textContent=weekAvg.rate+'%';
 
-  weekEl.textContent='—';
-  monthEl.textContent='—';
-
-  const list=await fetchList();
-  const summaryMap={};
-  (list||[]).forEach(item=>{
-    summaryMap[item.date]=item.summary||{agenda:'',total:0,done:0};
-  });
-
-  const currentTasks=curDay.tasks||[];
-  summaryMap[curDate]={
-    agenda:curDay.agenda||'',
-    total:currentTasks.length,
-    done:currentTasks.filter(t=>t.done).length
-  };
-
-  function avgForDays(n){
-    const dates=[];
-    for(let i=n-1;i>=0;i--){
-      dates.push(addDays(todayStr(),-i));
-    }
-    const items=dates.map(date=>summaryMap[date]).filter(s=>s&&s.total>0);
-    if(!items.length)return null;
-    const avg=Math.round(items.reduce((acc,s)=>acc+Math.round((s.done/s.total)*100),0)/items.length);
-    return avg;
-  }
-
-  const weekAvg=avgForDays(7);
-  const monthAvg=avgForDays(30);
-
-  weekEl.textContent=weekAvg===null?'—':weekAvg+'%';
-  monthEl.textContent=monthAvg===null?'—':monthAvg+'%';
+  const [cy,cm,cd]=curDate.split('-').map(Number);
+  const monthStart=`${cy}-${pad(cm)}-01`;
+  const monthEnd=`${cy}-${pad(cm)}-${pad(cd)}`;
+  const monthAvg=await calcAverageForRange(monthStart, monthEnd);
+  document.getElementById('s-month').textContent=monthAvg.rate+'%';
 }
 
 /* ═══════════════════════════════════════
@@ -4297,20 +4278,25 @@ async function removeAdmin(id,email){
 /* ═══════════════════════════════════════
    VIEW SWITCHING
 ═══════════════════════════════════════ */
-function showView(v, pushStateFlag=true){
+function showView(v, opts={}){
+  const { push=true } = opts;
   const _T={today:'오늘의 업무',calendar:'캘린더',history:'기록',stats:'통계',recurring:'반복업무',admin:'관리자'};
   const _tb=document.getElementById('tb-title');
   if(_tb&&_T[v])_tb.textContent=_T[v];
+  console.log('showView:', v);
   try{sessionStorage.setItem('lastView',v);}catch{}
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
   const viewEl=document.getElementById('view-'+v);
   if(viewEl)viewEl.classList.add('active');
   const idx={today:0,calendar:1,history:2,stats:3,recurring:4,admin:5}[v];
-  const navItems=document.querySelectorAll('.sb-item');
-  if(navItems[idx])navItems[idx].classList.add('active');
-  if(pushStateFlag){
-    try{history.pushState({appView:v},'',location.pathname+location.search+'#'+v);}catch{}
+  const items=document.querySelectorAll('.sb-item');
+  if(items[idx])items[idx].classList.add('active');
+  if(push && currentSession){
+    const hash='#'+v;
+    if(location.hash!==hash){
+      history.pushState({view:v}, '', location.pathname+location.search+hash);
+    }
   }
   if(v==='calendar')renderCalendar();
   if(v==='history'){histFullData=[];renderHistory();}
@@ -4336,23 +4322,20 @@ function showView(v, pushStateFlag=true){
   }
 }
 
+window.addEventListener('popstate', async (e)=>{
+  if(!currentSession) return;
+  const view=(e.state&&e.state.view) || (location.hash||'#today').replace('#','') || 'today';
+  const valid=['today','calendar','history','stats','recurring','admin'];
+  const safe=valid.includes(view)?view:'today';
+  showView(safe,{push:false});
+});
+
 /* ═══════════════════════════════════════
    UTILS
 ═══════════════════════════════════════ */
 function showLoading(msg){document.getElementById('loading-msg').textContent=msg||'처리 중...';document.getElementById('loading').classList.add('open');}
 function hideLoading(){document.getElementById('loading').classList.remove('open');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-
-
-window.addEventListener('popstate', async (e)=>{
-  const view=e.state&&e.state.appView;
-  if(!view)return;
-  if(!currentSession)return;
-  if(view==='today' && !document.getElementById('view-today').classList.contains('active')){
-    await loadDay(curDate);
-  }
-  showView(view, false);
-});
 
 /* ═══════════════════════════════════════
    START
