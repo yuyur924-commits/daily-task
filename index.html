@@ -159,10 +159,10 @@
   .chart-hd{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
   .bar-chart{display:flex;align-items:flex-end;gap:6px;height:140px}
   .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
-  .bar-v{font-size:9px;color:var(--text3)}
+  .bar-v{font-size:11px;color:var(--text2);font-weight:500}
   .bar-b{width:100%;min-height:3px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--accent2),var(--accent));transition:height .5s ease}
   .bar-b.empty{background:var(--border)}
-  .bar-l{font-size:9px;color:var(--text3);white-space:nowrap}
+  .bar-l{font-size:11px;color:var(--text2);white-space:nowrap;font-weight:500}
   .period-tabs{display:flex;gap:3px}
   .ptab{padding:4px 11px;border-radius:14px;border:1px solid var(--border2);background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:11px;color:var(--text2);cursor:pointer;transition:all .2s}
   .ptab.active{background:var(--accent);border-color:var(--accent);color:white}
@@ -584,7 +584,7 @@
       </div>
       <div class="section-card">
         <div class="section-head"><h3>📌 주요 일정</h3></div>
-        <textarea class="agenda-input" id="agenda-inp" placeholder="오늘의 주요 일정을 입력하세요... (Enter로 줄바꿈)" onblur="saveField('agenda')" oninput="markUnsaved()" rows="2" style="resize:none;line-height:1.6;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur();}"></textarea>
+        <textarea class="agenda-input" id="agenda-inp" placeholder="오늘의 주요 일정을 입력하세요... (Shift+Enter로 줄바꿈)" onblur="saveField('agenda')" oninput="markUnsaved()" rows="2" style="resize:none;line-height:1.6;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur();}"></textarea>
       </div>
       <div class="section-card">
         <div class="section-head">
@@ -616,7 +616,7 @@
       </div>
       <div class="section-card">
         <div class="section-head"><h3>💬 진행 특이사항</h3></div>
-        <textarea class="memo-ta" id="memo-inp" placeholder="미진행 사항 / 이슈사항 / 확인사항 / 개선점 등" onblur="saveField('memo')" oninput="markUnsaved()"></textarea>
+        <textarea class="memo-ta" id="memo-inp" placeholder="이슈사항 / 확인사항 / 개선점 등" onblur="saveField('memo')" oninput="markUnsaved()"></textarea>
       </div>
     </div>
 
