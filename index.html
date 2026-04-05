@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일일 업무 관리</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20aria-hidden%3D%22true%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22brandGrad%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%237A5AF8%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%234A72FF%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M18%2018H38L46%2026V46H18V18Z%22%20fill%3D%22none%22%20stroke%3D%22%235369B6%22%20stroke-width%3D%226%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M38%2018V26H46%22%20fill%3D%22none%22%20stroke%3D%22%235369B6%22%20stroke-width%3D%226%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M24%2034L31%2041L44%2026%22%20fill%3D%22none%22%20stroke%3D%22url%28%23brandGrad%29%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23243B6B'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='4' y='4' width='56' height='56' rx='16' fill='url(%23g)'/%3E%3Cpath d='M20 18h22a3 3 0 0 1 3 3v20a3 3 0 0 1-3 3H23a3 3 0 0 1-3-3V18Z' fill='%23fff' fill-opacity='0.97'/%3E%3Cpath d='M34 18l8 8h-5a2 2 0 0 1-2-2V18Z' fill='%23D9CCFF'/%3E%3Cpath d='M27 30h11' stroke='%23314D86' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M27 36h9' stroke='%23314D86' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M27 42h12' stroke='%237A5AF8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"><text y='.9em' font-size='90'>📑</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -358,9 +358,8 @@
 
   /* ── 사이드바 레이아웃 ── */
   .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
-  .sb-logo{padding:18px 16px 16px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
-  .sb-logo-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .sb-logo-icon svg{width:44px;height:44px;display:block;}
+  .sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .sb-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 3px 10px rgba(59,95,160,.4);}
   .sb-logo-text{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:#fff;}
   .sb-logo-sub{font-size:10px;color:var(--sidebar-text2);letter-spacing:.3px;}
   .sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
@@ -398,31 +397,348 @@
   }
 
 
-  .brand-icon{display:inline-flex;align-items:center;justify-content:center;}
-  .brand-icon svg{width:100%;height:100%;display:block;}
+  :root{
+    --brand-navy:#243B6B;
+    --brand-purple:#6D4DFF;
+    --brand-indigo:#314D86;
+    --brand-soft:#F4F6FD;
+    --card-shadow:0 8px 24px rgba(28,35,51,.06), 0 2px 8px rgba(28,35,51,.04);
+    --card-shadow-strong:0 14px 32px rgba(28,35,51,.10), 0 4px 14px rgba(28,35,51,.06);
+  }
+
+  body{
+    background:linear-gradient(180deg,#F7F9FD 0%, #F2F5FB 100%);
+  }
+
+  #login-screen{
+    background:
+      radial-gradient(circle at top left, rgba(109,77,255,.10) 0%, transparent 32%),
+      radial-gradient(circle at bottom right, rgba(36,59,107,.12) 0%, transparent 30%),
+      #1C2333 !important;
+  }
+
+  #login-screen > div{
+    border-radius:22px !important;
+    padding:40px 36px !important;
+    box-shadow:0 20px 48px rgba(12,18,30,.26), 0 8px 20px rgba(12,18,30,.14) !important;
+  }
+
+  .login-brand-wrap{
+    text-align:center;
+    margin-bottom:24px;
+  }
+  .login-brand-badge{
+    width:68px;
+    height:68px;
+    border-radius:18px;
+    background:linear-gradient(135deg,var(--brand-navy) 0%, var(--brand-purple) 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 14px;
+    box-shadow:0 10px 24px rgba(36,59,107,.20), 0 3px 10px rgba(109,77,255,.14);
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .login-brand-badge svg{width:36px;height:36px;display:block}
+  .login-brand-title{
+    font-family:'Noto Serif KR',serif;
+    font-size:26px;
+    font-weight:700;
+    color:var(--text);
+    letter-spacing:-0.2px;
+  }
+  .login-brand-sub{
+    font-size:13px;
+    color:var(--text2);
+    margin-top:5px;
+    font-weight:500;
+  }
+
+  .setup-card{
+    border-radius:22px !important;
+    padding:42px !important;
+    box-shadow:var(--card-shadow-strong) !important;
+  }
+
+  #login-email-input,
+  #login-pw-input{
+    height:42px;
+    border-radius:10px !important;
+    border:1px solid #D8DFEC !important;
+    background:#FAFBFE !important;
+    font-size:13px !important;
+  }
+  #login-email-input:focus,
+  #login-pw-input:focus{
+    background:#fff !important;
+    border-color:var(--brand-purple) !important;
+    box-shadow:0 0 0 4px rgba(109,77,255,.08);
+  }
+
+  #login-tab-wrap{
+    border-radius:10px !important;
+    overflow:hidden;
+    background:#F7F9FD;
+  }
+  #tab-email, #tab-google{
+    height:38px;
+    font-size:12px !important;
+  }
+  #login-email-panel > button,
+  #login-google-panel button{
+    height:42px;
+    border-radius:10px !important;
+  }
+
+  .sidebar{
+    background:linear-gradient(180deg,#1D2435 0%, #161D2C 100%) !important;
+    box-shadow:inset -1px 0 0 rgba(255,255,255,.04);
+  }
+  .sb-logo{
+    padding:22px 18px 18px !important;
+    gap:12px !important;
+  }
+  .sb-logo-icon{
+    width:38px !important;
+    height:38px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex-shrink:0 !important;
+  }
+  .sb-logo-icon svg{
+    width:38px !important;
+    height:38px !important;
+    display:block !important;
+  }
+  .sb-logo-text{
+    font-size:18px !important;
+    letter-spacing:-0.2px;
+  }
+  .sb-logo-sub{
+    font-size:10px !important;
+    margin-top:2px;
+    color:#8090AE !important;
+  }
+
+  .sb-item{
+    min-height:40px;
+    border-radius:10px !important;
+    padding:9px 12px !important;
+    font-size:13px !important;
+    font-weight:500;
+  }
+  .sb-item:hover{
+    background:rgba(255,255,255,.08) !important;
+  }
+  .sb-item.active{
+    background:linear-gradient(135deg,var(--brand-navy),var(--brand-purple)) !important;
+    box-shadow:0 8px 18px rgba(36,59,107,.26) !important;
+  }
+  .sb-ic{
+    width:18px !important;
+    height:18px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    opacity:.92 !important;
+  }
+  .sb-ic svg{
+    width:18px;
+    height:18px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .sb-item.adm{
+    border:1px solid rgba(240,126,132,.25);
+    background:rgba(192,68,74,.10) !important;
+  }
+  .sb-foot{
+    padding:14px !important;
+  }
+  .sb-btn{
+    height:32px;
+    border-radius:8px !important;
+  }
+
+  .top-bar{
+    height:56px !important;
+    background:rgba(255,255,255,.78) !important;
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(228,233,242,.9) !important;
+    box-shadow:0 1px 2px rgba(28,35,51,.04) !important;
+  }
+  .tb-title{
+    font-size:15px !important;
+    font-weight:700 !important;
+    letter-spacing:-0.1px;
+  }
+  .sync-status{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:5px 10px;
+  }
+
+  .stat-card,
+  .section-card,
+  .sum-card,
+  .chart-card,
+  .hist-card,
+  .rec-card,
+  .memo-list-card,
+  .cal-sum-card{
+    border-radius:16px !important;
+    border:1px solid rgba(225,231,242,.95) !important;
+    box-shadow:var(--card-shadow) !important;
+  }
+
+  .section-head{
+    min-height:48px;
+    padding:13px 18px !important;
+    background:linear-gradient(180deg,#FCFDFF 0%, #F8FAFE 100%) !important;
+  }
+  .section-head h3{
+    font-size:12px !important;
+    font-weight:700 !important;
+    color:#4C5B76 !important;
+  }
+
+  .today-date-block h2{
+    font-size:28px !important;
+    letter-spacing:-0.5px;
+  }
+
+  .date-nav-btn,
+  .today-btn,
+  .cal-nav-btn,
+  .cal-today-btn,
+  .ptab,
+  .btn-pri,
+  .btn-sec,
+  .add-btn,
+  .setup-btn{
+    border-radius:10px !important;
+  }
+  .setup-btn,
+  .add-btn,
+  .btn-pri{
+    background:linear-gradient(135deg,var(--brand-navy),var(--brand-purple)) !important;
+  }
+
+  .agenda-input,
+  .memo-ta{
+    padding:16px 18px !important;
+  }
+
+  .task-table th{
+    background:#FAFBFE !important;
+  }
+
+  .add-input,
+  .pri-select,
+  .m-input,
+  .m-ta,
+  .setup-input{
+    border-radius:10px !important;
+    background:#FAFBFE !important;
+  }
+
+  .modal{
+    border-radius:20px !important;
+    box-shadow:0 24px 60px rgba(28,35,51,.18), 0 8px 18px rgba(28,35,51,.10) !important;
+  }
+
+  @media(max-width:768px){
+    #login-screen > div{
+      padding:34px 24px !important;
+      max-width:360px !important;
+    }
+    .login-brand-badge{
+      width:62px;
+      height:62px;
+      border-radius:16px;
+    }
+    .login-brand-badge svg{
+      width:32px;
+      height:32px;
+    }
+  }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js">
-(function(){
-  const iconHref = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20aria-hidden%3D%22true%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22brandGrad%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%237A5AF8%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%234A72FF%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M18%2018H38L46%2026V46H18V18Z%22%20fill%3D%22none%22%20stroke%3D%22%235369B6%22%20stroke-width%3D%226%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M38%2018V26H46%22%20fill%3D%22none%22%20stroke%3D%22%235369B6%22%20stroke-width%3D%226%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M24%2034L31%2041L44%2026%22%20fill%3D%22none%22%20stroke%3D%22url%28%23brandGrad%29%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E';
-  let link = document.querySelector('link[rel="icon"]');
-  if(!link){
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
-  }
-  link.type = 'image/svg+xml';
-  link.href = iconHref;
-})();
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute;visibility:hidden" aria-hidden="true">
+  <defs>
+    <linearGradient id="brandGradUi" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#243B6B"/>
+      <stop offset="100%" stop-color="#6D4DFF"/>
+    </linearGradient>
+
+    <symbol id="brand-doc" viewBox="0 0 64 64">
+      <rect x="10" y="10" width="44" height="44" rx="12" fill="url(#brandGradUi)"/>
+      <path d="M23 22h18a3 3 0 0 1 3 3v16.5a3 3 0 0 1-3 3H26a3 3 0 0 1-3-3V22Z" fill="#FFFFFF" fill-opacity="0.97"/>
+      <path d="M35 22l6 6h-4.2a1.8 1.8 0 0 1-1.8-1.8V22Z" fill="#D9CCFF"/>
+      <path d="M29 31.5h10" stroke="#314D86" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M29 36.5h8" stroke="#314D86" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M29 41.5h11" stroke="#7A5AF8" stroke-width="2.8" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="ic-today" viewBox="0 0 24 24">
+      <rect x="3.5" y="5" width="17" height="15" rx="3"></rect>
+      <path d="M8 3.5v3"></path>
+      <path d="M16 3.5v3"></path>
+      <path d="M3.5 9.5h17"></path>
+      <path d="M8 14l2.2 2.2L16 11"></path>
+    </symbol>
+
+    <symbol id="ic-calendar" viewBox="0 0 24 24">
+      <rect x="3.5" y="5" width="17" height="15" rx="3"></rect>
+      <path d="M8 3.5v3"></path>
+      <path d="M16 3.5v3"></path>
+      <path d="M3.5 9.5h17"></path>
+      <path d="M8 13h3"></path>
+      <path d="M13 13h3"></path>
+      <path d="M8 17h3"></path>
+    </symbol>
+
+    <symbol id="ic-history" viewBox="0 0 24 24">
+      <path d="M4 12a8 8 0 1 0 2.3-5.6"></path>
+      <path d="M4 4v5h5"></path>
+      <path d="M12 8v5l3 2"></path>
+    </symbol>
+
+    <symbol id="ic-stats" viewBox="0 0 24 24">
+      <path d="M4 19.5h16"></path>
+      <rect x="6" y="11" width="3" height="6.5" rx="1"></rect>
+      <rect x="11" y="8" width="3" height="9.5" rx="1"></rect>
+      <rect x="16" y="5" width="3" height="12.5" rx="1"></rect>
+    </symbol>
+
+    <symbol id="ic-repeat" viewBox="0 0 24 24">
+      <path d="M17 2.5l3 3-3 3"></path>
+      <path d="M20 5.5H9a4 4 0 0 0-4 4v1"></path>
+      <path d="M7 21.5l-3-3 3-3"></path>
+      <path d="M4 18.5h11a4 4 0 0 0 4-4v-1"></path>
+    </symbol>
+
+    <symbol id="ic-admin" viewBox="0 0 24 24">
+      <path d="M12 3l2.1 4.2 4.6.7-3.3 3.2.8 4.5-4.2-2.2-4.2 2.2.8-4.5L5.3 7.9l4.6-.7L12 3z"></path>
+      <path d="M8 19.5h8"></path>
+    </symbol>
+  </defs>
+</svg>
+
 
 <!-- SETUP SCREEN -->
 <div id="setup-screen" class="setup-screen" style="display:none;">
   <div class="setup-card">
-    <div class="setup-logo" style="display:flex;align-items:center;gap:10px;"><span style="width:34px;height:34px;display:inline-flex;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7A5AF8"/><stop offset="100%" stop-color="#4A72FF"/></linearGradient></defs><path d="M18 18H38L46 26V46H18V18Z" fill="none" stroke="#5369B6" stroke-width="6" stroke-linejoin="round"/><path d="M38 18V26H46" fill="none" stroke="#5369B6" stroke-width="6" stroke-linejoin="round"/><path d="M24 34L31 41L44 26" fill="none" stroke="url(#brandGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Daily</span></div>
+    <div class="setup-logo">📑 Daily</div>
     <div class="setup-title">Google Sheets 연동 설정</div>
     <div class="setup-sub">아래 단계를 따라 설정하면 어떤 기기에서든 동일한 데이터를 쓸 수 있어요.</div>
     <div class="setup-step"><div class="setup-step-num">1</div><div class="setup-step-text"><strong>Google 시트 만들기</strong><br><a href="https://sheets.new" target="_blank" style="color:var(--accent);">sheets.new</a> 를 새 탭에서 열어 빈 구글 시트를 만드세요.</div></div>
@@ -441,10 +757,12 @@
 <!-- LOGIN SCREEN -->
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--sidebar-bg2);flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:999;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow2);width:100%;max-width:400px;padding:44px 40px;">
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="width:76px;height:76px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7A5AF8"/><stop offset="100%" stop-color="#4A72FF"/></linearGradient></defs><path d="M18 18H38L46 26V46H18V18Z" fill="none" stroke="#5369B6" stroke-width="6" stroke-linejoin="round"/><path d="M38 18V26H46" fill="none" stroke="#5369B6" stroke-width="6" stroke-linejoin="round"/><path d="M24 34L31 41L44 26" fill="none" stroke="url(#brandGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:var(--text);">Daily</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px;">일일 업무 관리</div>
+    <div class="login-brand-wrap">
+      <div class="login-brand-badge">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#brand-doc"></use></svg>
+      </div>
+      <div class="login-brand-title">Daily</div>
+      <div class="login-brand-sub">일일 업무 관리</div>
     </div>
 
     <!-- 이메일 로그인 탭 -->
@@ -478,17 +796,19 @@
 <div id="main-app" style="display:none;width:100%;">
   <aside class="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7A5AF8"/><stop offset="100%" stop-color="#4A72FF"/></linearGradient></defs><path d="M18 18H38L46 26V46H18V18Z" fill="none" stroke="#5369B6" stroke-width="6" stroke-linejoin="round"/><path d="M38 18V26H46" fill="none" stroke="#5369B6" stroke-width="6" stroke-linejoin="round"/><path d="M24 34L31 41L44 26" fill="none" stroke="url(#brandGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sb-logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><use href="#brand-doc"></use></svg>
+      </div>
       <div><div class="sb-logo-text">Daily</div><div class="sb-logo-sub">업무관리</div></div>
     </div>
     <nav class="sb-nav">
       <div class="sb-sec">메뉴</div>
-      <button class="sb-item active" onclick="showView('today')"><span class="sb-ic">📅</span>오늘</button>
-      <button class="sb-item" onclick="showView('calendar')"><span class="sb-ic">🗓</span>캘린더</button>
-      <button class="sb-item" onclick="showView('history')"><span class="sb-ic">📂</span>기록</button>
-      <button class="sb-item" onclick="showView('stats')"><span class="sb-ic">📊</span>통계</button>
-      <button class="sb-item" onclick="showView('recurring')"><span class="sb-ic">🔁</span>반복업무</button>
-      <button class="sb-item adm" id="admin-nav-btn" onclick="showView('admin')" style="display:none;"><span class="sb-ic">👑</span>관리자</button>
+      <button class="sb-item active" onclick="showView('today')"><span class="sb-ic"><svg viewBox="0 0 24 24"><use href="#ic-today"></use></svg></span>오늘</button>
+      <button class="sb-item" onclick="showView('calendar')"><span class="sb-ic"><svg viewBox="0 0 24 24"><use href="#ic-calendar"></use></svg></span>캘린더</button>
+      <button class="sb-item" onclick="showView('history')"><span class="sb-ic"><svg viewBox="0 0 24 24"><use href="#ic-history"></use></svg></span>기록</button>
+      <button class="sb-item" onclick="showView('stats')"><span class="sb-ic"><svg viewBox="0 0 24 24"><use href="#ic-stats"></use></svg></span>통계</button>
+      <button class="sb-item" onclick="showView('recurring')"><span class="sb-ic"><svg viewBox="0 0 24 24"><use href="#ic-repeat"></use></svg></span>반복업무</button>
+      <button class="sb-item adm" id="admin-nav-btn" onclick="showView('admin')" style="display:none;"><span class="sb-ic"><svg viewBox="0 0 24 24"><use href="#ic-admin"></use></svg></span>관리자</button>
     </nav>
     <div class="sb-foot">
       <div class="sb-user">
