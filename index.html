@@ -386,6 +386,9 @@
   .main-wrap{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0;}
   .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:50px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(28,35,51,.05);}
   .tb-title{font-size:14px;font-weight:600;color:var(--text);flex:1;}
+  .mobile-save-btn{display:none;align-items:center;justify-content:center;gap:5px;height:32px;padding:0 10px;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--accent);font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;flex-shrink:0;}
+  .mobile-save-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .mobile-save-btn.unsaved{background:var(--red);border-color:var(--red);color:#fff;}
   @media(max-width:768px){
     .sidebar{width:100%;height:54px;flex-direction:row;position:fixed;top:auto;bottom:0;border-right:none;border-top:1px solid var(--sidebar-border);}
     .sb-logo,.sb-foot{display:none;}
@@ -407,9 +410,10 @@
 
 
   @media(max-width:768px) and (orientation:portrait){
-    .top-bar{height:46px;padding:0 14px;}
-    .tb-title{font-size:13px;}
-    .sync-status{font-size:10px;gap:4px;}
+    .top-bar{height:46px;padding:0 12px;gap:8px;}
+    .tb-title{font-size:13px;min-width:0;}
+    .mobile-save-btn{display:inline-flex;height:30px;padding:0 9px;font-size:11px;}
+    .sync-status{font-size:10px;gap:4px;flex-shrink:0;}
     .sync-dot{width:6px;height:6px;}
 
     .app-body{padding:12px 12px 18px !important;}
@@ -622,7 +626,7 @@
         <div class="sb-email-txt" id="user-email"></div>
       </div>
       <div class="sb-btns">
-        <button class="sb-btn sv" id="manual-save-btn" onclick="manualSave()"><svg viewBox="0 0 24 24"><use href="#ic-save"></use></svg>저장</button>
+        <button class="sb-btn sv" id="manual-save-btn" data-save-btn="1" onclick="manualSave()"><svg viewBox="0 0 24 24"><use href="#ic-save"></use></svg>저장</button>
         <button class="sb-btn" onclick="openDownloadModal()"><svg viewBox="0 0 24 24"><use href="#ic-report"></use></svg>주간보고 다운로드</button>
         <button class="sb-btn" onclick="signOut()"><svg viewBox="0 0 24 24"><use href="#ic-logout"></use></svg>로그아웃</button>
       </div>
@@ -631,6 +635,7 @@
   <div class="main-wrap">
     <div class="top-bar">
       <div class="tb-title" id="tb-title">오늘의 업무</div>
+      <button class="mobile-save-btn" data-save-btn="1" onclick="manualSave()"><svg viewBox="0 0 24 24"><use href="#ic-save"></use></svg><span>저장</span></button>
       <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">연결됨</span></div>
     </div>
   <main class="app-body">
@@ -1551,8 +1556,13 @@ async function fetchDay(date){
   return cacheGet('day_'+date)||{tasks:[],agenda:'',memo:''};
 }
 async function manualSave(){
-  const btn=document.getElementById('manual-save-btn');
-  if(btn){btn.textContent='💾 저장 중...';btn.style.color='var(--accent)';}
+  const btns=[...document.querySelectorAll('[data-save-btn]')];
+  btns.forEach(btn=>{
+    const span=btn.querySelector('span');
+    if(span) span.textContent='저장 중...';
+    else btn.textContent='💾 저장 중...';
+    btn.style.color='var(--accent)';
+  });
   try{
     // 현재 입력 중인 필드 강제 저장
     const agendaEl=document.getElementById('agenda-inp');
@@ -1560,14 +1570,29 @@ async function manualSave(){
     const memoEl=document.getElementById('memo-inp');
     if(memoEl)curDay.memo=memoEl.value;
     await saveCurrent(true);
-    if(btn){btn.textContent='✅ 저장됨';btn.style.color='var(--green)';}
+    btns.forEach(btn=>{
+      const span=btn.querySelector('span');
+      if(span) span.textContent='저장됨';
+      else btn.textContent='✅ 저장됨';
+      btn.style.color='var(--green)';
+    });
     setTimeout(()=>{
-      if(btn){btn.textContent='💾 저장';btn.style.color='';}
+      btns.forEach(btn=>{
+        const span=btn.querySelector('span');
+        if(span) span.textContent='저장';
+        else btn.textContent='💾 저장';
+        btn.style.color='';
+      });
     },2000);
     markSaved();
     toast('💾 저장됐어요');
   }catch(e){
-    if(btn){btn.textContent='💾 저장';btn.style.color='';}
+    btns.forEach(btn=>{
+      const span=btn.querySelector('span');
+      if(span) span.textContent='저장';
+      else btn.textContent='💾 저장';
+      btn.style.color='';
+    });
     toast('⚠️ 저장 실패');
   }
 }
@@ -1639,9 +1664,20 @@ function setSyncStatus(s){
 
 // 미저장 상태 헤더 표시
 function updateUnsavedIndicator(){
-  const btn=document.getElementById('manual-save-btn');
-  if(!btn)return;
-  if(_unsavedChanges){btn.textContent='💾 저장 필요';btn.classList.add('unsaved');}else{btn.textContent='💾 저장';btn.classList.remove('unsaved');}
+  const btns=[...document.querySelectorAll('[data-save-btn]')];
+  if(!btns.length)return;
+  btns.forEach(btn=>{
+    const span=btn.querySelector('span');
+    if(_unsavedChanges){
+      if(span) span.textContent='저장 필요';
+      else btn.textContent='💾 저장 필요';
+      btn.classList.add('unsaved');
+    }else{
+      if(span) span.textContent='저장';
+      else btn.textContent='💾 저장';
+      btn.classList.remove('unsaved');
+    }
+  });
 }
 
 /* ═══════════════════════════════════════
