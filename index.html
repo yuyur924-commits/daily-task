@@ -435,24 +435,33 @@
     .agenda-input,.memo-ta{padding:12px 14px;font-size:14px;}
     .memo-ta{min-height:90px;}
 
-    .task-table th{padding:8px 8px;font-size:9px;}
-    .task-table td{padding:8px 8px;}
-    .task-table th.c-pri{width:58px;}
-    .task-table th.c-note{width:84px;}
-    .task-table th.c-done{width:44px;}
-    .task-table th.c-del{width:28px;}
-    .task-name{font-size:12px;line-height:1.45;}
-    .task-name-wrap{gap:6px;align-items:flex-start;}
-    .minutes-tag,.minutes-add,.carry-badge{font-size:9px;padding:2px 6px;}
+    .task-table{table-layout:fixed;}
+    .task-table th{padding:8px 5px;font-size:9px;}
+    .task-table td{padding:8px 5px;}
+    .task-table th.c-no{width:24px;}
+    .task-table th.c-pri{width:44px;}
+    .task-table th.c-note{width:54px;}
+    .task-table th.c-done{width:34px;}
+    .task-table th.c-del{width:22px;}
+    .task-table td:first-child{font-size:10px;color:var(--text3);text-align:center;}
+    .task-name{font-size:13px;line-height:1.45;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;}
+    .task-name-wrap{gap:4px;align-items:flex-start;min-width:0;}
+    .task-name-wrap .chk{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+    .minutes-tag,.minutes-add,.carry-badge{font-size:8px;padding:2px 5px;flex-shrink:0;}
     .pri-blocks{justify-content:center;}
-    .note-input{font-size:10px;}
+    .task-table td:nth-child(3),.task-table td:nth-child(4),.task-table td:nth-child(5),.task-table td:nth-child(6){text-align:center;}
+    .task-table td:nth-child(4) .chk{width:15px;height:15px;}
+    .task-table td:nth-child(6){padding-left:2px;padding-right:2px;}
+    .note-input{font-size:10px;padding:0;min-width:0;}
+    .del-btn{width:16px;height:16px;font-size:13px;}
 
     .add-row td{padding:10px 8px;}
-    .add-form{display:grid;grid-template-columns:110px 1fr;gap:8px;}
-    .add-form .cat-select{width:100%;max-width:none;min-width:0;height:38px;}
-    .add-form .add-input{min-width:0;}
-    .add-form .pri-select{grid-column:1 / 2;height:38px;}
-    .add-form .add-btn{grid-column:2 / 3;height:38px;}
+    .add-form{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:stretch;}
+    .add-form .cat-select{grid-column:1 / 2;width:100%;max-width:none;min-width:0;height:40px;}
+    .add-form .add-input{grid-column:2 / 3;min-width:0;height:40px;}
+    .add-form .pri-select{grid-column:1 / 2;height:40px;min-width:0;}
+    .add-form .add-btn{grid-column:2 / 3;height:40px;width:100%;}
+    .add-input{padding:9px 10px;font-size:13px;}
 
     .sum-grid,
     #admin-summary-cards,
