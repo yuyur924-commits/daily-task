@@ -3777,6 +3777,7 @@ function getAdminDateRange(){
 
 /* ── 전체 데이터 로드 ── */
 let adminTeamFilter=''; // 현재 팀 필터
+let adminSuperPartFilter=''; // 슈퍼관리자용 파트 필터
 let userProfiles={}; // {user_id: {name, team, part}}
 
 async function loadTeams(){
