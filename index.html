@@ -421,7 +421,7 @@
 </div>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" style="display:none;min-height:100vh;background:var(--sidebar-bg2);flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--sidebar-bg2);flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:999;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow2);width:100%;max-width:400px;padding:44px 40px;">
     <div style="text-align:center;margin-bottom:28px;">
       <div style="width:54px;height:54px;border-radius:13px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;box-shadow:0 6px 20px rgba(59,95,160,.35);">📋</div>
@@ -440,7 +440,7 @@
       <input id="login-email-input" type="email" placeholder="이메일 주소" style="width:100%;border:1px solid var(--border2);border-radius:7px;padding:10px 13px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;margin-bottom:8px;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" onkeydown="if(event.key==='Enter')document.getElementById('login-pw-input').focus()">
       <input id="login-pw-input" type="password" placeholder="비밀번호" style="width:100%;border:1px solid var(--border2);border-radius:7px;padding:10px 13px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;margin-bottom:12px;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" onkeydown="if(event.key==='Enter')signInWithEmail()">
       <button onclick="signInWithEmail()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:7px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;margin-bottom:8px;" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">로그인</button>
-      <button onclick="signUpWithEmail()" style="width:100%;padding:10px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:7px;font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">처음 사용 · 회원가입</button>
+
     </div>
 
     <!-- Google 패널 -->
@@ -1083,11 +1083,24 @@ async function signInWithEmail(){
       headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
       body:JSON.stringify({email,password:pw})
     });
-    const data=await res.json();
+    let data=await res.json();
     if(!res.ok){
-      const msg=data.error_description||data.msg||data.message||'로그인 실패';
-      errEl.textContent=msg==='Invalid login credentials'?'이메일 또는 비밀번호가 맞지 않아요.':msg;
-      errEl.style.display='block';return;
+      // 로그인 실패 → 자동 회원가입 시도
+      const signupRes=await fetch(`${SB_URL}/auth/v1/signup`,{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({email,password:pw})
+      });
+      const signupData=await signupRes.json();
+      if(!signupRes.ok){
+        errEl.textContent='이메일 또는 비밀번호를 확인해 주세요.';errEl.style.display='block';return;
+      }
+      if(signupData.access_token){
+        data=signupData;
+      } else {
+        errEl.style.color='var(--green)';
+        errEl.textContent='✅ 가입 완료! 다시 로그인해 주세요.';errEl.style.display='block';return;
+      }
     }
     const userRes=await fetch(`${SB_URL}/auth/v1/user`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+data.access_token}});
     const user=await userRes.json();
@@ -1113,7 +1126,7 @@ async function signUpWithEmail(){
       headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
       body:JSON.stringify({email,password:pw})
     });
-    const data=await res.json();
+    let data=await res.json();
     if(!res.ok){
       errEl.textContent=data.error_description||data.msg||'가입 실패';errEl.style.display='block';return;
     }
