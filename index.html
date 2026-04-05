@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Task Manager</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233E67D6'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='8' y='8' width='48' height='48' rx='12' fill='url(%23g)'/%3E%3Cpath d='M24 18h11l7 7v21H24z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M35 18v7h7' fill='none' stroke='%23D9CCFF' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M28 31h10' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M28 39h10' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M28 47h7' stroke='%23D9CCFF' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"><text y='.9em' font-size='90'>📑</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%233E67D6'/%3E%3Cstop offset='100%25' stop-color='%236D4DFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='44' height='44' rx='12' fill='url(%23g)'/%3E%3Cpath d='M24 18h11l7 7v21H24z' fill='none' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M35 18v7h7' fill='none' stroke='%23D9CCFF' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M28 31h10' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M28 39h10' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M28 47h7' stroke='%23D9CCFF' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"><text y='.9em' font-size='90'>📑</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -361,8 +361,6 @@
   .sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;flex-shrink:0;}
   .sb-logo-text{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;color:#fff;line-height:1.1;}
   .sb-logo-sub{font-size:11px;color:var(--sidebar-text2);letter-spacing:.3px;margin-top:5px;}
-  .sb-ic{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.92;}
-  .sb-ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
   .sb-sec{font-size:10px;font-weight:600;color:var(--sidebar-text2);text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px;}
   .sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:7px;color:var(--sidebar-text);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;margin-bottom:2px;font-family:'Noto Sans KR',sans-serif;}
@@ -378,14 +376,11 @@
   .sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;}
   .sb-email-txt{font-size:11px;color:var(--sidebar-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
   .sb-btns{display:flex;flex-direction:column;gap:6px;}
-  .sb-btn{width:100%;min-height:28px;padding:0 10px;border-radius:9px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-text2);font-size:10px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:flex-start;gap:7px;white-space:nowrap;}
+  .sb-btn{width:100%;min-height:30px;padding:0 10px;border-radius:9px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-text2);font-size:11px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:flex-start;gap:7px;white-space:nowrap;}
   .sb-btn:hover{background:rgba(255,255,255,.05);color:#fff;}
-  .sb-btn svg{width:12px;height:12px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .sb-btn svg{width:13px;height:13px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .sb-btn.sv{background:rgba(62,103,214,.16);border-color:rgba(62,103,214,.26);color:#DCE7FF;}
   .sb-btn.sv:hover{background:rgba(62,103,214,.22);border-color:rgba(62,103,214,.32);}
-  .cat-select{width:120px;max-width:120px;min-width:120px;height:40px;border:1px solid var(--accent);border-radius:8px;padding:0 34px 0 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--text);background-color:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;line-height:40px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 5 4-5' fill='%231C2333'/></svg>");background-repeat:no-repeat;background-position:right 12px center;background-size:12px;vertical-align:middle;}
-  .cat-select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(59,95,160,.10);}
-  .cat-select::-ms-expand{display:none;}
   .sb-btn.sv.unsaved{background:var(--red);border-color:var(--red);color:white;}
   /* ── 메인 영역 ── */
   .main-wrap{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0;}
@@ -429,17 +424,9 @@
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--sidebar-bg2);flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:999;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow2);width:100%;max-width:400px;padding:44px 40px;">
     <div style="text-align:center;margin-bottom:28px;">
-      <div style="width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#243B6B 0%, #6D4DFF 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 18px rgba(36,59,107,.18), 0 3px 8px rgba(109,77,255,.12);border:1px solid rgba(255,255,255,.18);">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:28px;height:28px;display:block;">
-          <path d="M7 3.5h6l4 4v13A1.5 1.5 0 0 1 15.5 22h-8A1.5 1.5 0 0 1 6 20.5V5A1.5 1.5 0 0 1 7 3.5Z" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M13 3.5v4h4" stroke="#D9CCFF" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M9 11h6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-          <path d="M9 15h6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.95"/>
-          <path d="M9 19h4.5" stroke="#D9CCFF" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </div>
+      <div style="width:54px;height:54px;border-radius:13px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;box-shadow:0 6px 20px rgba(59,95,160,.35);">📋</div>
       <div style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:var(--text);">Task Manager</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px;">업무 관리</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px;">일일 업무 관리</div>
     </div>
 
     <!-- 이메일 로그인 탭 -->
@@ -473,16 +460,16 @@
 <div id="main-app" style="display:none;width:100%;">
   <aside class="sidebar">
     <div class="sb-logo">
-      <div><div class="sb-logo-text">Task Manager</div><div class="sb-logo-sub">업무 관리</div></div>
+      <div><div class="sb-logo-text">Task Manager</div><div class="sb-logo-sub">업무관리</div></div>
     </div>
     <nav class="sb-nav">
       <div class="sb-sec">메뉴</div>
-      <button class="sb-item active" onclick="showView('today')"><span class="sb-ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"></rect><path d="M8 3.5v3"></path><path d="M16 3.5v3"></path><path d="M3.5 9.5h17"></path><path d="M8 14l2.2 2.2L16 11"></path></svg></span>오늘</button>
-      <button class="sb-item" onclick="showView('calendar')"><span class="sb-ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"></rect><path d="M8 3.5v3"></path><path d="M16 3.5v3"></path><path d="M3.5 9.5h17"></path><path d="M8 13h3"></path><path d="M13 13h3"></path><path d="M8 17h3"></path></svg></span>캘린더</button>
-      <button class="sb-item" onclick="showView('history')"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6"></path><path d="M4 4v5h5"></path><path d="M12 8v5l3 2"></path></svg></span>기록</button>
-      <button class="sb-item" onclick="showView('stats')"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M4 19.5h16"></path><rect x="6" y="11" width="3" height="6.5" rx="1"></rect><rect x="11" y="8" width="3" height="9.5" rx="1"></rect><rect x="16" y="5" width="3" height="12.5" rx="1"></rect></svg></span>통계</button>
-      <button class="sb-item" onclick="showView('recurring')"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M17 2.5l3 3-3 3"></path><path d="M20 5.5H9a4 4 0 0 0-4 4v1"></path><path d="M7 21.5l-3-3 3-3"></path><path d="M4 18.5h11a4 4 0 0 0 4-4v-1"></path></svg></span>반복업무</button>
-      <button class="sb-item adm" id="admin-nav-btn" onclick="showView('admin')" style="display:none;"><span class="sb-ic"><svg viewBox="0 0 24 24"><path d="M12 3l2.1 4.2 4.6.7-3.3 3.2.8 4.5-4.2-2.2-4.2 2.2.8-4.5L5.3 7.9l4.6-.7L12 3z"></path><path d="M8 19.5h8"></path></svg></span>관리자</button>
+      <button class="sb-item active" onclick="showView('today')"><span class="sb-ic">📅</span>오늘</button>
+      <button class="sb-item" onclick="showView('calendar')"><span class="sb-ic">🗓</span>캘린더</button>
+      <button class="sb-item" onclick="showView('history')"><span class="sb-ic">📂</span>기록</button>
+      <button class="sb-item" onclick="showView('stats')"><span class="sb-ic">📊</span>통계</button>
+      <button class="sb-item" onclick="showView('recurring')"><span class="sb-ic">🔁</span>반복업무</button>
+      <button class="sb-item adm" id="admin-nav-btn" onclick="showView('admin')" style="display:none;"><span class="sb-ic">👑</span>관리자</button>
     </nav>
     <div class="sb-foot">
       <div class="sb-user">
@@ -538,10 +525,9 @@
           <tbody id="task-tbody"></tbody>
           <tfoot><tr class="add-row"><td colspan="6">
             <div class="add-form">
-              <div style="position:relative;max-width:120px;">
-                <select class="cat-select" id="nc">
-                  <option value="">구분</option>
-                </select>
+              <div style="position:relative;max-width:110px;">
+                <input class="add-input add-cat" id="nc" placeholder="구분" list="cat-datalist" autocomplete="off">
+                <datalist id="cat-datalist"></datalist>
               </div>
               <input class="add-input" id="nt" placeholder="업무 내용 입력 후 Enter 또는 추가">
               <select class="pri-select" id="np">
@@ -1569,10 +1555,8 @@ function renderTasks(){
         <td style="text-align:center;font-size:11px;color:var(--text3);">${i+1}</td>
         <td colspan="3">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <select class="cat-select" id="ei-cat">
-              <option value="">구분</option>
-              ${categoriesList.map(c=>`<option value="${esc(c)}" ${c===(t.category||'')?'selected':''}>${esc(c)}</option>`).join('')}
-            </select>
+            <input class="edit-input edit-cat" id="ei-cat" value="${esc(t.category||'')}" placeholder="구분" list="cat-datalist-edit" autocomplete="off">
+            <datalist id="cat-datalist-edit">${categoriesList.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
             <input class="edit-input" id="ei-name" value="${esc(t.name)}" placeholder="업무명" style="flex:1;min-width:120px;">
             <select class="pri-select" id="ei-pri">
               <option value="4" ${t.priority===4?'selected':''}>🔴 최우선</option>
@@ -1625,7 +1609,7 @@ async function saveEdit(i){
 
   const task={
     ...curDay.tasks[i],
-    category:document.getElementById('ei-cat').value,
+    category:document.getElementById('ei-cat').value.trim(),
     name,
     priority:parseInt(document.getElementById('ei-pri').value),
     note:document.getElementById('ei-note').value.trim(),
@@ -1687,7 +1671,7 @@ async function calcAverageForRange(fromStr, toStr){
   }
   return {rate: count?Math.round(sum/count*100):0, days:count, done:totalDone, total:totalTasks};
 }
-async async function renderStatCards(){
+async function renderStatCards(){
   const tasks=curDay.tasks||[];
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const rate=total?Math.round(done/total*100):0;
@@ -1710,7 +1694,7 @@ async async function renderStatCards(){
    TASK ACTIONS
 ═══════════════════════════════════════ */
 async function addTask(){
-  const cat=document.getElementById('nc').value;
+  const cat=document.getElementById('nc').value.trim();
   const name=document.getElementById('nt').value.trim();
   const priority=parseInt(document.getElementById('np').value);
   if(!name)return;
@@ -2631,17 +2615,7 @@ async function loadCategories(){
     const rows=await res.json();
     categoriesList=(rows||[]).map(r=>r.name);
   }catch(e){console.error('loadCategories:',e);}
-  renderCategoryOptions();
 }
-
-function renderCategoryOptions(){
-  const sel=document.getElementById('nc');
-  if(!sel)return;
-  const current=sel.value||'';
-  sel.innerHTML='<option value="">구분</option>' + categoriesList.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  if(categoriesList.includes(current)) sel.value=current;
-}
-
 
 async function saveCategory(name,part){
   if(!name)return false;
@@ -2804,7 +2778,8 @@ async function addCategoryItem(){
     document.getElementById('cat-add-input').value='';
     await renderCategoryList();
     await loadCategories(); // 개인 캐시도 갱신
-    renderCategoryOptions();
+    const dl=document.getElementById('cat-datalist');
+    if(dl)dl.innerHTML=categoriesList.map(c=>`<option value="${esc(c)}">`).join('');
     toast(`✅ '[${part}] ${name}' 구분이 추가됐어요`);
   } else {
     toast('추가 실패');
